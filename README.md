@@ -5,7 +5,7 @@
 
 | Métadonnées à extraire                                                                                                                                                                                                                                   |
 | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| - l’identifiant (id) de l’article<br>- la source : le nom du journal, qu’on peut approximer avec le nom du fichier<br>- le titre de l’article<br>- le contenu de l’article<br>- la date de l’article<br>- les catégories auxquelles appartient l’article |
+| - l’identifiant (id) de l’article<br>- la source : le nom du journal, <br>- le titre de l’article<br>- le contenu de l’article<br>- la date de l’article<br>- les catégories auxquelles appartient l’article |
 
 
 ### Exercice 1 Découverte du RSS - traiter un unique fichier
@@ -16,7 +16,7 @@ Nous répartissons les rôles entre nous, chacune devra se charger de produire d
 
 | rôle | module                                    | tâche                                     |
 | ---- | ----------------------------------------- | ----------------------------------------- |
-| r1   | ==module re==<br>> expressions régulières | extraire les informations des balises XML |
-| r2   | ==module etree==<br>> librairie python    | lire, modifier                            |
-| r3   | ==module feedparser==                     | environnement virtuel                     |
+| r1   | module *re*==<br>> expressions régulières | extraire les informations des balises XML |
+| r2   | module *etree*==<br>> librairie python    | lire, modifier et explorer du XML |
+| r3   | module *feedparser*<br>> environnement virtuel | lire et décoder des flux RSS|
 - chacune de ces fonctions renverra une liste de dictionnaires
