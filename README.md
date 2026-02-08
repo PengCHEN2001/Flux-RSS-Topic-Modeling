@@ -16,7 +16,7 @@ Nous répartissons les rôles entre nous, chacune devra se charger de produire d
 
 | rôle | module                                    | tâche                                     |
 | ---- | ----------------------------------------- | ----------------------------------------- |
-| r1   | module *re*==<br>> expressions régulières | extraire les informations des balises XML |
-| r2   | module *etree*==<br>> librairie python    | lire, modifier et explorer du XML |
-| r3   | module *feedparser*<br>> environnement virtuel | lire et décoder des flux RSS|
+| r1   | module **re**<br>> expressions régulières | extraire les informations des balises XML |
+| r2   | module **etree**<br>> librairie python    | lire, modifier et explorer du XML |
+| r3   | module **feedparser**<br>> environnement virtuel | lire et décoder des flux RSS|
 - chacune de ces fonctions renverra une liste de dictionnaires
