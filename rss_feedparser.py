@@ -8,7 +8,7 @@
 #2) Installer feedparser sur le terminal avec la commande suivante : pip install feedparser
 #3) Pour ouvrir ce script, utiliser cette commande avec ces arguments : python3 fichier.py chemin/vers/fichier.xml ou alors python3 fichier.py fichier.xml
 # Exemple : python3 rss_feedparser.py "Le Figaro - Vidéos.xml"
-# N.B. : Parfois, certains fichiers peuvent avoir des "espaces", il faut donc les appeller avec des guillemets (sinon, la machine va croire que ce sont des arguments : d'où l'erreur d'affichage "error: unrecognized arguments:"). 
+# N.B. : Parfois, certains fichiers peuvent avoir des "espaces", il faut donc les appeler avec des guillemets (sinon, la machine va croire que ce sont des arguments : d'où l'erreur d'affichage "error: unrecognized arguments:").
 # Optionnel : pour voir tous les résulats générés, on peut utiliser la commande suivante : python3 rss_feedparser.py chemin/vers/fichier_xml > fichier.txt
 #######
 
