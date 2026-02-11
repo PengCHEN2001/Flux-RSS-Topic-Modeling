@@ -27,19 +27,7 @@ Nous répartissons les rôles entre nous, chacune devra se charger de produire d
 | r1   | module **re**<br>> expressions régulières | extraire les informations des balises XML |
 | r2   | module **etree**<br>> librairie python    | lire, modifier et explorer du XML |
 | r3   | module **feedparser**<br>> environnement virtuel | lire et décoder des flux RSS|
-- chacune de ces fonctions renverra une liste de dictionnaires
-
-
-## Exercice 1 :
-
-**Branche créée :** `r1-FA`
-
-**Branche créée :** `r2-HO`
-
-**Branche créée :** `r3-HY`
-
-*Tag* :  HY-s3e1r3-fin
-
+Chacune de ces fonctions renverra une liste de dictionnaires
 
 
 ### Rôle 1 : FA
