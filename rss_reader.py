@@ -3,7 +3,8 @@
 """
 
 import re
-import os
+import sys
+import pathlib import Path 
 
 def read_file(file_path):
     """Lit le contenu du fichier XML."""
@@ -28,7 +29,7 @@ def extract_tag(content, tag):
 def extract_items(xml_content, source_name):
     """Extrait les articles du flux RSS et retourne une liste de dictionnaires."""
     # On accepte les namespaces éventuels dans <item>
-    items = re.findall(r"<(?:\w+:)?item\b[^>]*>(.*?)</(?:\w+:)?item>", xml_content, re.DOTALL)
+    items = re.findall(r"<(?:\w+:)?item\b[^>]*>(.*?)</(?:\w+:)?item>", xml_content, re.DOTALL) 
 
     metadonnees = []
 
@@ -43,16 +44,16 @@ def extract_items(xml_content, source_name):
         # source (nom du fichier)
         article["source"] = source_name
 
-        # titre
+        # titre de l'article
         article["title"] = extract_tag(item, "title")
 
-        # contenu
+        # contenu de l'article
         article["content"] = extract_tag(item, "description")
 
-        # date
+        # date de l'article
         article["date"] = extract_tag(item, "pubDate")
 
-        # catégories (peut y en avoir plusieurs)
+        # catégories (il peut y en avoir plusieurs)
         categories = re.findall(r"<(?:\w+:)?category\b[^>]*>(.*?)</(?:\w+:)?category>", item, re.DOTALL)
         article["categories"] = [clean_cdata(c).strip() for c in categories]
 
