@@ -32,15 +32,85 @@ Chacune de ces fonctions renverra une liste de dictionnaires
 
 ### Rôle 1 : FA
 
+doc : https://docs.python.org/3/library/re.html / https://stackoverflow.com/questions/10250381/extracting-from-xml-using-regex / https://flapenguin.me/xml-regex
 
+L’objectif de cette partie était d’extraire automatiquement les métadonnées d’un flux RSS au format XML (articles, titre, date, catégories, etc.) en utilisant le module `re` de Python, donc en s’appuyant uniquement sur des **expressions régulières**.
+
+L’idée était de :
+- Lire un fichier XML
+- Identifier les balises `<item>`
+- Extraire les informations importantes
+- Structurer les résultats sous forme de dictionnaires
+
+###### Etape 1 - lecture du fichier XML
+J’ai commencé par écrire une fonction `read_file()` qui ouvre le fichier en UTF-8 et retourne son contenu sous forme de chaîne de caractères
+
+```python
+with open(file_path, "r", encoding="utf-8") as f:
+    return f.read()
+```
+
+###### Etape 2 : Extraction des balises "item"
+J’ai utilisé `re.findall()` pour récupérer tous les blocs `<item>...</item>`
+
+```python
+items = re.findall(r"<(?:\w+:)?item\b[^>]*>(.*?)</(?:\w+:)?item>", xml_content, re.DOTALL)
+
+```
+
+- `(?:\w+:)?` → permet de gérer les namespaces (ex: `<media:item>`)
+- `\b` → évite de capturer des mots comme `<itemized>`
+- `[^>]*` → autorise des attributs dans la balise
+- `(.*?)` → capture le contenu interne
+- `re.DOTALL` → permet au `.` de capturer aussi les retours à la ligne
+
+###### Etape 3 : Extraction des balises internes (title, link, pubDate…)
+
+J’ai créé une fonction générique `extract_tag(content, tag)` pour éviter la répétition de code
+
+```python
+pattern = rf"<(?:\w+:)?{tag}[^>]*>(.*?)</(?:\w+:)?{tag}>"
+
+```
+
+J’ai opté pour créer une fonction générique d’extraction de balises afin d’éviter de réécrire une `re` différente pour chaque champ, de centraliser toute la logique d’extraction dans un seul endroit du code et rendre le programme plus clair, plus modulaire et plus facile à modifier ou à étendre par la suite
+
+Le plus dur a été de gérer les cas où certaines balises sont absentes, comme le `guid` dans certains articles, ce qui nécessitait de prévoir des valeurs de remplacement et de nettoyer correctement les balises `CDATA` pour ne conserver que le texte utile
+
+###### Etape 4 : gestion des CDATA
+
+Les flux RSS contiennent parfois : 
+```python
+<![CDATA[ Contenu de l’article ]]>
+```
+
+- solution -> utiliser `re.sub()` pour supprimer ces marqueurs
+###### Etape 5 : structure des données
+Chaque article est stocké dans un dictionnaire :
+
+```python
+article = {
+    "id": ...,
+    "source": ...,
+    "title": ...,
+    "content": ...,
+    "date": ...,
+    "categories": [...]
+}
+```
+
+- format JSON -> facilement exploitable, structure claire
+
+###### Limite de la méthode des `re` et conclusion
+
+Utiliser des **expressions régulières** pour parser du XML, est une méthode assez fragile. Elle fonctionne tant que la structure du flux RSS est simple et régulière, mais au moindre changement dans l’ordre des balises, leur format ou la présence ou non d’attributs supplémentaires, les expressions régulières peuvent ne plus correspondre. Le code devient alors très dépendant d’un format précis et perd en souplesse. J’ai aussi constaté que dès que le XML devient un peu plus complexe, avec des balises imbriquées ou des namespaces différents, les regex deviennent longues, difficiles à lire et compliquées à maintenir.
+
+Cette approche est peu robuste face aux erreurs de format. Si une balise est mal fermée ou si le contenu contient des caractères inattendus, les `re` peuvent échouer ou retourner des résultats incorrects sans signaler clairement l’erreur. Enfin, comme tout le fichier est traité en une seule fois, cette méthode n’est pas idéale pour des fichiers volumineux ou pour un grand nombre de flux RSS.
 
 
 ### Rôle 2 : HO
 
-
-
-
-
+..........................................................
 
 ### Rôle 3 : HY
 Ex1.2. Création d'un fichier rss_reader.py : foncyion qui lit le fichier xml dont le chemin est donné en argument et qui retourne une liste de dictionnaires qui comporte des métadonnées des items du flux RSS et du texte.
