@@ -95,9 +95,6 @@ def main():
     # Extraction des articles
     articles = extract_items(xml_content, source_name)
 
-    # Affichage du nombre d’articles trouvés
-    print(f"Nombre d'articles trouvés : {len(articles)}\n")
-
     # Affichage des métadonnées de chaque article
     for art in articles:
         print("ID :", art["id"])
