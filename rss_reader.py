@@ -4,7 +4,7 @@ Ce script lit un flux RSS en XML et extrait les articles sous forme de dictionna
 """
 
 import re
-import os
+from pathlib import Path
 import argparse
 
 def read_file(file_path):
@@ -137,8 +137,8 @@ def main():
     file_path = args.fichier_xml
     
     # On récupère uniquement le nom du fichier (sans le chemin)
-    source_name = os.path.basename(file_path)
-
+    source_name = Path(file_path).name
+    
     # Lecture du contenu XML
     xml_content = read_file(file_path)
 
