@@ -4,15 +4,14 @@ import re
 import argparse
 from pathlib import Path
 
-#Récupère le texte d'une balise. Retourne une chaîne vide si la balise est absente.
+# Récupère le texte d'une balise. Retourne une chaîne vide si la balise est absente.
 def get_text(parent, tag):
     elem = parent.find(tag)
     if elem is not None and elem.text:
         return elem.text.strip()
     return ""
 
-#Traite UN fichier RSS XML Retourne une liste de dictionnaires (articles)
-    
+# Traite UN fichier RSS XML Retourne une liste de dictionnaires (articles)
 def module_etree(chemin_fichier):
     articles = []
 
@@ -27,37 +26,33 @@ def module_etree(chemin_fichier):
     if channel is None:
         return articles
 
-    # >>>>> SUGGESTION R1 : Il manque une variable pour récupérer la catégorie du channel
-    # channel_categories = [
-    #     cat.text.strip()
-    #     for cat in channel.findall("category")
-    #     if cat.text
-    # ]
+    # >>>>> SUGGESTION R1 : la liste de catégories n'est pas triée, on pourrait utiliser sorted() pour avoir un ordre stable
+    channel_categories = [
+        cat.text.strip()
+        for cat in channel.findall("category")
+        if cat.text
+    ]
 
     for item in channel.findall("item"):
 
         raw_content = get_text(item, "description")
         clean_content = re.sub(r"<[^>]+>", "", raw_content)
 
-    # >>>>> SUGGESTION R1 : la liste de catégories n'est pas triée, on pourrait utiliser sorted() pour avoir un ordre stable
-    # categories = sorted([
-        #     cat.text.strip()
-        #     for cat in item.findall("category")
-        #     if cat.text
-        # ])
-        
+     # >>>>> SUGGESTION R1 : la liste de catégories n'est pas triée, on pourrait utiliser sorted() pour avoir un ordre stable
+        categories = sorted([
+            cat.text.strip()
+            for cat in item.findall("category")
+            if cat.text
+        ])
+
         article = {
             "id": get_text(item, "guid") or get_text(item, "link"),
             "source": os.path.basename(chemin_fichier),
             "title": get_text(item, "title"),
             "content": clean_content,
             "date": get_text(item, "pubDate"),
-            "categories": [
-                cat.text.strip()
-                for cat in item.findall("category")
-                if cat.text
-            ]
-    # >>>>> SUGGESTION R1 Remplacer cette liste par la variable triée "categories"
+            "categories": categories,
+            "channel_categories": channel_categories
         }
 
         articles.append(article)
@@ -71,9 +66,9 @@ def main(dossier):
 
     # Parcours récursif des fichiers XML
     for fichier in chemin.glob("**/*.xml"):
-    	print("Trouvé :", fichier)
-    	articles = module_etree(fichier)
-    	tous_les_articles.extend(articles)
+        print("Trouvé :", fichier)
+        articles = module_etree(fichier)
+        tous_les_articles.extend(articles)
 
     print("Nombre total d'articles :", len(tous_les_articles))
     
