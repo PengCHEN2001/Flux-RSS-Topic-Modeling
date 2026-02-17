@@ -120,13 +120,12 @@ La solution a consisté à identifier le bon dossier contenant de véritables fi
 2. Gestion des erreurs XML
 Certains fichiers XML présents dans le dossier étaient invalides (fichiers mal formés, tronqués ou ne contenant pas un vrai flux RSS). Sans gestion d’erreur, le script s’arrêtait dès le premier fichier invalide.
 Pour rendre le script robuste, un bloc try/except a été ajouté :
-````Python
+
 try:
     tree = ET.parse(chemin_fichier)
 except ET.ParseError:
     print(f"Fichier XML invalide : {chemin_fichier}")
     return articles
-````Python
     
 Cela permet :
     • d’ignorer les fichiers invalides,
@@ -145,16 +144,13 @@ en haut du fichier.
 
 4. Problème de portabilité (chemin absolu)
 Au départ, le chemin du fichier XML était codé en dur :
-`dossier = "/home/hulya/Téléchargements/.."`
+dossier = "/home/hulya/Téléchargements/..."
 Ce choix rendait le script inutilisable sur les autres machines du groupe.
 Pour rendre le script portable, le chemin a été passé en argument via argparse :
-`````python
 parser = argparse.ArgumentParser(...)
 parser.add_argument("fichier_xml", help="Chemin vers le fichier XML RSS")
 args = parser.parse_args()
 main(args.fichier_xml)
-````python
-
 Le script se lance désormais ainsi :
 python3 rss_reader.py chemin/vers/fichier.xml
 Cela garantit :
@@ -182,7 +178,6 @@ La situation a été corrigée en :
 
 Voici la version du script que je n’ai finalement pas pu pousser sur le dépôt. Il s’agissait de ma version initiale, avant les remarques et corrections de ma camarade. Cette première version fonctionnait en local, mais elle ne respectait pas complètement la consigne.
 
-```python
 import xml.etree.ElementTree as ET
 import os
 import re
@@ -246,7 +241,7 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     main(args.dossier_xml)
-````python
+    
     
 Après échange avec HY, elle m’a conseillé de relire attentivement l’énoncé. Je me suis alors rendu compte que mon script ne traitait pas un seul fichier XML comme demandé, mais parcourait tout un dossier. De plus, le chemin vers les fichiers était codé en dur avec mon chemin personnel (/home/...), ce qui empêchait le script de fonctionner sur d’autres machines.
 J’ai donc corrigé ces deux points :
@@ -288,7 +283,7 @@ Cela permet au script de continuer à traiter le reste de l’arborescence sans 
 
 4. Vérification du parcours
 Pour vérifier que le parcours fonctionnait réellement, j’ai temporairement ajouté :
-`print("Trouvé :", fichier)`
+print("Trouvé :", fichier)
 Cela m’a permis de confirmer que les fichiers étaient bien détectés récursivement et que le problème ne venait pas du glob.
 Résultat final
 Le script :
