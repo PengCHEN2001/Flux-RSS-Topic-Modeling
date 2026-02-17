@@ -27,12 +27,24 @@ def module_etree(chemin_fichier):
     if channel is None:
         return articles
 
+    # >>>>> SUGGESTION R1 : Il manque une variable pour récupérer la catégorie du channel
+    # channel_categories = [
+    #     cat.text.strip()
+    #     for cat in channel.findall("category")
+    #     if cat.text
+    # ]
 
     for item in channel.findall("item"):
 
         raw_content = get_text(item, "description")
         clean_content = re.sub(r"<[^>]+>", "", raw_content)
 
+    # >>>>> SUGGESTION R1 : la liste de catégories n'est pas triée, on pourrait utiliser sorted() pour avoir un ordre stable
+    # categories = sorted([
+        #     cat.text.strip()
+        #     for cat in item.findall("category")
+        #     if cat.text
+        # ])
         
         article = {
             "id": get_text(item, "guid") or get_text(item, "link"),
@@ -45,6 +57,7 @@ def module_etree(chemin_fichier):
                 for cat in item.findall("category")
                 if cat.text
             ]
+    # >>>>> SUGGESTION R1 Remplacer cette liste par la variable triée "categories"
         }
 
         articles.append(article)
@@ -83,4 +96,3 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     main(args.dossier)
-
