@@ -1,3 +1,4 @@
+<<<<<<< rss_reader.py
 """
 1ère méthode : module re - expressions régulières
 Ce script lit un flux RSS en XML et extrait les articles sous forme de dictionnaires.
@@ -161,10 +162,7 @@ def main():
 # Point d’entrée du programme
 if __name__ == "__main__":
     main()
-    
-    
-    
-    
+
     
 ##########RELECTURE PAR R3 : 
 #Problème 1 :
@@ -265,3 +263,99 @@ if __name__ == "__main__":
 #Problème 4 : 
 #On a des lettres qui sont remplacées par des caractères comme : &#xE9; => pour l'accent “é” ou encore “&#039;” pour l’apostrophe “ ‘ “. On peut importer le module HTML ou ne faire qu'avec des regex mais si certains caractères ne sont pas définis dans le script, le programme peut s'arrêter...
 #Solution : cf. solution 3.
+
+
+import xml.etree.ElementTree as ET
+import os
+import re
+import argparse
+from pathlib import Path
+
+# Récupère le texte d'une balise. Retourne une chaîne vide si la balise est absente.
+def get_text(parent, tag):
+    elem = parent.find(tag)
+    if elem is not None and elem.text:
+        return elem.text.strip()
+    return ""
+
+# Traite UN fichier RSS XML Retourne une liste de dictionnaires (articles)
+def module_etree(chemin_fichier):
+    articles = []
+
+    try:
+        tree = ET.parse(chemin_fichier)
+    except ET.ParseError:
+        return articles
+
+    root = tree.getroot()
+
+    channel = root.find(".//channel")
+    if channel is None:
+        return articles
+
+    # >>>>> SUGGESTION R1 : la liste de catégories n'est pas triée, on pourrait utiliser sorted() pour avoir un ordre stable
+    channel_categories = [
+        cat.text.strip()
+        for cat in channel.findall("category")
+        if cat.text
+    ]
+
+    for item in channel.findall("item"):
+
+        raw_content = get_text(item, "description")
+        clean_content = re.sub(r"<[^>]+>", "", raw_content)
+
+     # >>>>> SUGGESTION R1 : la liste de catégories n'est pas triée, on pourrait utiliser sorted() pour avoir un ordre stable
+        categories = sorted([
+            cat.text.strip()
+            for cat in item.findall("category")
+            if cat.text
+        ])
+
+        article = {
+            "id": get_text(item, "guid") or get_text(item, "link"),
+            "source": os.path.basename(chemin_fichier),
+            "title": get_text(item, "title"),
+            "content": clean_content,
+            "date": get_text(item, "pubDate"),
+            "categories": categories,
+            "channel_categories": channel_categories
+        }
+
+        articles.append(article)
+
+    return articles
+
+
+def main(dossier):
+    tous_les_articles = []
+    chemin = Path(dossier)
+
+    # Parcours récursif des fichiers XML
+    for fichier in chemin.glob("**/*.xml"):
+        print("Trouvé :", fichier)
+        articles = module_etree(fichier)
+        tous_les_articles.extend(articles)
+
+    print("Nombre total d'articles :", len(tous_les_articles))
+    
+    for i, article in enumerate(tous_les_articles, start=1):
+        print(f"\nARTICLE {i}")
+        print("-" * 40)
+        for cle, valeur in article.items():
+            print(f"{cle} : {valeur}")
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="Extraction des métadonnées d'un flux RSS"
+    )
+    parser.add_argument(
+        "dossier",
+        help="Chemin vers le dossier contenant les fichiers XML"
+    )
+
+    args = parser.parse_args()
+
+    main(args.dossier)
+>>>>>>> rss_reader.py
