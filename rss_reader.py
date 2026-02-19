@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-1ère méthode : module re - expressions régulières
+1e méthode : module re - expressions régulières
 Ce script lit un flux RSS en XML et extrait les articles sous forme de dictionnaires.
 """
 
@@ -13,6 +13,32 @@ import feedparser #r3
 import argparse #Pour appeler notre fonction. 
 from bs4 import BeautifulSoup #Pour nettoyer les balises dans un texte.
 import sys
+
+
+# Semaines 1 & 2
+
+# Correction ajoutée ultérieurement pour que le script puisse lire un corpus (et non un seul fichier XML)
+def walk_os(sample: str):
+    """Parcourt un dossier récursivement pour trouver tous les fichiers .xml"""
+    if os.path.isfile(sample):
+        if sample.endswith(".xml"):
+            return [sample]
+        else:
+            return []
+
+    files = sorted(os.path.join(sample, file) for file in os.listdir(sample))
+
+    if len(files) == 0:
+        return []
+
+    found_files = []
+    for file in files:
+        if os.path.isfile(file):
+            if file.endswith(".xml"):
+                found_files.append(file)
+        elif os.path.isdir(file):
+            found_files.extend(walk_os(file))
+
 
 
 #r1
@@ -281,6 +307,25 @@ def read_rss(method, path):
         print("Méthode non existante pour lancer ce programme. Veuillez recommencer.")
         sys.exit(1)
 
+
+
+# Semaine 3
+
+# r1 : filtrage par date
+def filtrage_date():
+    pass
+
+
+# r2 : filtrage par source
+def filtrage_source():
+    pass
+
+
+# r3 : filtrage par catégorie
+def filtrage_cat():
+    pass
+
+
 def main() : 
     parser = argparse.ArgumentParser(description = "Lire un fichier xml (flux RSS) avec une méthode à choisir")
     parser.add_argument(
@@ -298,13 +343,12 @@ def main() :
         for key, value in article.items() :
             print(key, ":", value)
         print()
-  
     
 if __name__ == "__main__" : 
     main()
     
 
-#######POUR L'UTILISATEUR :
+####### POUR L'UTILISATEUR :
 #Lancement du script : 
 #1) Ouvrir un terminal et aller dans un environnement virtuel, exemple : source venvs/plurital/bin/activate.
 #Sans un environnement virtuel, l'utilisation du module feedparser pour la méthode r3 ne fonctionnera pas.
