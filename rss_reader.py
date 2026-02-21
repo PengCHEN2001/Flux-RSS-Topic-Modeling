@@ -343,21 +343,39 @@ def read_rss(method, path):
 
 
 # -------------Semaine 3
+def filtrage(filtres: list, articles: list[dict]) -> list[dict]:
+    """applique successivement les filtres et qui renvoie la liste filtrée (crée une nouvelle liste sans modifier l'ancienne)."""
+    filtered_articles = []
+    for article in articles:
+        check_filtre = True
+        for filtre in filtres:
+            if not filtre(article):
+                check_filtre = False
+                break
+        if check_filtre:
+            filtered_articles.append(article)
+    return filtered_articles
 
 
 # r1 : filtrage par date
-def filtrage_date():
-    pass
+def filtre_date(item: dict) -> bool:
+    """fonction de filtrage en fonction de la date.
+    Les dates doivent être parsées avec le module 'datetime'"""
+    return True
 
 
 # r2 : filtrage par source
-def filtrage_source():
-    pass
+def filtre_source(item: dict) -> bool:
+    """fonction de filtrage en fonction de la ou des sources (nom du journal).
+    1) filtrage des sources
+    2) garantir l'unicité des articles"""
+    return True
 
 
 # r3 : filtrage par catégorie
-def filtrage_cat():
-    pass
+def filtre_cat(item: dict) -> bool:
+    """fonction de filtrage acceptant une ou plusieurs catégories indiquées dans les balises 'category' des fichiers XML."""
+    return True
 
 
 def main():
@@ -402,6 +420,11 @@ def main():
         all_articles.extend(articles)
 
     print(f"\nNombre total d'articles : {len(all_articles)}\n")
+
+    # TODO
+    filtres = []
+
+    all_articles = filtrage(filtres, all_articles)
 
     for article in all_articles:
         for key, value in article.items():
