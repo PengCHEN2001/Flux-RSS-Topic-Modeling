@@ -18,8 +18,33 @@ Nous avons récupéré sur la proposition de correction mise à disposition par 
 ### Exercice 2 - Nouvelles fonctionnalités
 #### Difficultés
 XXX
-#### Solutions
-Nous avons décidé, d'un commun accord, après avoir rectifié le code dont nous avions hérité, de coder ensemble la structure "squelette" initiale et de définir les noms des fonctions, et ce afin de nous faciliter les merges à venir.
+#### Solutions : étape préliminaire
+Nous avons décidé, d'un commun accord, après avoir rectifié le code dont nous avions hérité, de coder avant toutes choses la fonction filtrage ainsi que la structure "squelette" initiale et de définir les noms des fonctions, et ce afin de nous faciliter les merges à venir.
+1. correction du code précédent
+2. création de la fonction filtrage
+3. création du squelette des trois fonctions `r1`, `r2` et `r3` avec leurs signatures et les docstrings.
+
+```python
+# r1 : filtrage par date
+def filtre_date(item: dict) -> bool:
+    """fonction de filtrage en fonction de la date.
+    Les dates doivent être parsées avec le module 'datetime'"""
+    return True
+
+
+# r2 : filtrage par source
+def filtre_source(item: dict) -> bool:
+    """fonction de filtrage en fonction de la ou des sources (nom du journal).
+    1) filtrage des sources
+    2) garantir l'unicité des articles"""
+    return True
+
+
+# r3 : filtrage par catégorie
+def filtre_cat(item: dict) -> bool:
+    """fonction de filtrage acceptant une ou plusieurs catégories indiquées dans les balises 'category' des fichiers XML."""
+    return True
+```
 
 ### Exercice 3 - Mise en production
 #### Difficultés
