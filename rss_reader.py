@@ -358,9 +358,38 @@ def filtrage(filtres: list, articles: list[dict]) -> list[dict]:
 
 
 # r1 : filtrage par date
-def filtre_date(item: dict) -> bool:
-    """fonction de filtrage en fonction de la date.
-    Les dates doivent être parsées avec le module 'datetime'"""
+def filtre_date(item: dict, date_start_str: str = None, date_end_str: str = None) -> bool:
+    """
+    Filtre les articles selon une période chronologique (r1).
+    """
+    from dateutil import parser as date_parser
+    from datetime import datetime
+
+    # Si l'article n'a pas de date, on le garde par défaut
+    if not item.get("date"):
+        return True
+
+    try:
+        # On convertit la date et on retire le fuseau horaire (.replace(tzinfo=None))
+        # Cela permet une comparaison directe sans erreur
+        item_date = date_parser.parse(item["date"]).replace(tzinfo=None)
+
+        # Filtrage par date de début
+        if date_start_str:
+            d_start = date_parser.parse(date_start_str).replace(tzinfo=None)
+            if item_date < d_start:
+                return False
+
+        # Filtrage par date de fin
+        if date_end_str:
+            d_end = date_parser.parse(date_end_str).replace(tzinfo=None)
+            if item_date > d_end:
+                return False
+
+    except (ValueError, TypeError):
+        # En cas d'erreur de lecture de la date, on conserve l'article
+        return True
+
     return True
 
 
@@ -397,6 +426,10 @@ def main():
         "fichier_xml", help="Chemin vers un fichier XML ou un dossier contenant des XML"
     )
 
+    # r1 : filtrage par date
+    parser.add_argument("--start", help="Date de début pour le filtrage (AAAA-MM-JJ)")
+    parser.add_argument("--end", help="Date de fin pour le filtrage (AAAA-MM-JJ)")
+
     args = parser.parse_args()
 
     # Sélection du walker
@@ -423,6 +456,9 @@ def main():
 
     # TODO
     filtres = []
+
+    if args.start or args.end: # Si l'utilisateur a saisi une date de début ou de fin, on active le filtre r1
+        filtres.append(lambda item: filtre_date(item, args.start, args.end))
 
     all_articles = filtrage(filtres, all_articles)
 
