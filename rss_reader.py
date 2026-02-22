@@ -11,6 +11,8 @@ import feedparser  # r3
 import argparse  # Pour appeler notre fonction.
 from bs4 import BeautifulSoup  # Pour nettoyer les balises dans un texte.
 import sys
+from datetime import datetime
+from dateutil import parser as date_parser
 
 # FONCTIONS
 # ----------------Semaines 1 & 2
@@ -359,10 +361,7 @@ def filtrage(filtres: list, articles: list[dict]) -> list[dict]:
 
 # r1 : filtrage par date
 # r1 : filtrage par date
-def filtre_date(item: dict, date_start_str: str = None, date_end_str: str = None) -> bool:
-
-    from dateutil import parser as date_parser
-    from datetime import datetime
+def filtre_date(item: dict, date_start_str: str | None = None, date_end_str: str | None = None) -> bool:
 
     # Si l'article n'a pas de date, on le garde par défaut pour ne pas perdre d'information
     if not item.get("date"):
