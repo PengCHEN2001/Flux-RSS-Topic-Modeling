@@ -31,6 +31,14 @@ def filtre_date(item: dict) -> bool:
     Les dates doivent être parsées avec le module 'datetime'"""
     return True
 
+#Difficultés
+#1. Les dates dans les flux RSS ne sont pas toutes écrites au même format, ce qui rend leur lecture difficile par le script.
+#2. Python refuse de comparer une date qui contient un fuseau horaire avec une date sans fuseau horaire.
+
+#Solutions
+#1. J'ai utilisé le module dateutil.parser car il est capable de lire automatiquement presque n'importe quel format de date.
+#2. Pour simplifier les comparaisons, j'ai supprimé les fuseaux horaires de toutes les dates avec .replace(tzinfo=None). Ainsi, toutes les dates sont standardisées et la comparaison fonctionne sans erreur.
+#3. Si un article n'a pas de date, j'ai choisi de le garder par défaut pour ne pas perdre d'informations.
 
 # r2 : filtrage par source
 def filtre_source(item: dict) -> bool:
