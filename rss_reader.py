@@ -453,18 +453,17 @@ def main():
     print(f"\nNombre total d'articles : {len(all_articles)}\n")
 
     # TODO
-    filtres = []
+    filtres_actifs = []
 
-    if args.start or args.end: # Si l'utilisateur a saisi une date de début ou de fin, on active le filtre r1
-        filtres.append(lambda item: filtre_date(item, args.start, args.end))
+    if args.start or args.end:
+        filtres_actifs.append(lambda item: filtre_date(item, args.start, args.end))
 
-    all_articles = filtrage(filtres, all_articles)
+    all_articles = filtrage(filtres_actifs, all_articles)
 
     for article in all_articles:
         for key, value in article.items():
             print(key, ":", value)
         print()
-
 
 if __name__ == "__main__":
     main()
