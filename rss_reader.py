@@ -357,6 +357,13 @@ def main() :
         help = "Mettre la méthode choisie entre le modulee re, le module etree et le module feedparser"
         )
     parser.add_argument("fichier_xml", help = "Ajouter le chemin vers le fichier xml")
+
+    parser.add_argument(
+        "--source",
+        nargs="+",  # permet de dire 1 ou plusieurs sources
+        help="Filtrer par une ou plusieurs sources"
+    )
+
     args = parser.parse_args()
     articles = read_rss(args.methode, args.fichier_xml)
 
@@ -366,6 +373,12 @@ def main() :
         for key, value in article.items() :
             print(key, ":", value)
         print()
+
+    articles = read_rss(args.methode, args.fichier_xml)
+
+    if args.source:
+        articles = filtrage_source(articles, args.source)
+        articles = filtrage_repetition(articles)
     
 if __name__ == "__main__" : 
     main()
