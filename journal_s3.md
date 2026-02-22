@@ -4,9 +4,9 @@
 > **Objectif** : ajouter des fonctions permettant de filtrer les données à charger en fonction de la date, de la source ou de la catégorie des articles.
 
 ## Répartition des rôles
-- `r1` : filtrage en fonction de la **date** -> Anna
-- `r2` : filtrage en fonction de la **source** -> Marc
-- `r3` : filtrage en fonction de la **catégorie** -> Morgane
+- `r1` : filtrage en fonction de la **date** -> Anna (`as`), relue par Morgane
+- `r2` : filtrage en fonction de la **source** -> Marc (`me`)
+- `r3` : filtrage en fonction de la **catégorie** -> Morgane (`mb`), relue par Anna
 
 ## Exercice 1 - Lecture du code précédent
 ### Difficultés
@@ -112,6 +112,15 @@ def filtre_cat(article: dict, categories: list[str]) -> bool|None:
 3. **Incompatibilité des signatures de fonctions** : Pour respecter la signature à un seul argument requise par `filtrage()`, nous avons utilisé une fonction `lambda` au moment de l'ajout du filtre dans la liste des filtres actifs (`filtre_r3 = lambda article: filtre_cat(article, args.categories)`). C'est là que s'opère la fameuse *enclosure*, qui permet de "figer" et d'"encapsuler" les arguments de l'utilisateur (`args.categories`), de sorte que la fonction principale n'ait plus qu'à lui passer l'`article` courant pour l'évaluer, respectant ainsi l'architecture globale imposée.
 
 ## Exercice 3 - Mise en production
+### Stratégie
+Nous avons tâché, pour chacune des étapes du projet, de minimiser autant que faire se peut les risques de conflits de merge.
+1. Définition d'une structure "squelette" commune avant de commencer à coder
+2. Relecture mutuelle des fonctions `r1`, `r2` et `r3`
+3. Merges successifs :  
+a. de `r1` dans `r3`, puis  
+b. de `r2` dans `r3 (+r1)`, puis  
+c. de `r3 (+r1 +r2)` dans `main`.
+
 ### Difficultés
 XXX
 ### Solutions
