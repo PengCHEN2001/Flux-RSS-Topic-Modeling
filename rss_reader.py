@@ -1,23 +1,25 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# IMPORT
 
-import os.path
-from pathlib import Path
+"""
+1e méthode : module re - expressions régulières
+Ce script lit un flux RSS en XML et extrait les articles sous forme de dictionnaires.
+"""
 
-import re  # r1
-import xml.etree.ElementTree as ET  # r2
-import feedparser  # r3
-import argparse  # Pour appeler notre fonction.
-from bs4 import BeautifulSoup  # Pour nettoyer les balises dans un texte.
+import re #r1
+import os
+import xml.etree.ElementTree as ET #r2
+import feedparser #r3
+import argparse #Pour appeler notre fonction. 
+from bs4 import BeautifulSoup #Pour nettoyer les balises dans un texte.
 import sys
 
-# FONCTIONS
-# ----------------Semaines 1 & 2
 
+# Semaines 1 & 2
 
 # Correction ajoutée ultérieurement pour que le script puisse lire un corpus (et non un seul fichier XML)
-def walk_os(sample: str) -> list[str]:
+def walk_os(sample: str):
+    """Parcourt un dossier récursivement pour trouver tous les fichiers .xml"""
     if os.path.isfile(sample):
         if sample.endswith(".xml"):
             return [sample]
@@ -37,37 +39,9 @@ def walk_os(sample: str) -> list[str]:
         elif os.path.isdir(file):
             found_files.extend(walk_os(file))
 
-    return found_files
 
 
-def walk_pathlib(sample: str) -> list[str]:
-    root = Path(sample)
-
-    def parcours(current: Path) -> list[str]:
-        result = []
-        if current.is_file() and current.suffix.lower() == ".xml":
-            result.append(str(current.resolve()))
-        elif current.is_dir():
-            for item in current.iterdir():
-                result.extend(parcours(item))
-        return result
-
-    return parcours(root)
-
-
-def walk_glob(sample: str) -> list[str]:
-    path = Path(sample)
-
-    if path.is_file() and path.suffix.lower() == ".xml":
-        return [str(path.resolve())]
-
-    if path.is_dir():
-        return sorted(str(p.resolve()) for p in path.rglob("*.xml"))
-
-    return []
-
-
-# r1
+#r1
 def read_file(file_path):
     """Lit le contenu du fichier XML et le retourne sous forme de chaîne de caractères."""
     # On ouvre le fichier en mode lecture avec l'encodage UTF-8
@@ -75,30 +49,30 @@ def read_file(file_path):
         # On renvoie tout le contenu du fichier
         return f.read()
 
-
 def clean_cdata(text):
     """Supprime les balises CDATA si présentes et les balises."""
     # Certaines balises XML contiennent <![CDATA[ ... ]]> pour protéger le texte
     # On enlève ces balises pour ne garder que le contenu
     if text:
-        # Supprimer le CDATA :
+        #Supprimer le CDATA : 
         text = re.sub(r"<!\[CDATA\[(.*?)\]\]>", r"\1", text, flags=re.DOTALL)
-        # Supprimer les balises (dans la description) :
+        #Supprimer les balises (dans la description) :
         text = re.sub(r"<[^>]+>", "", text, flags=re.DOTALL)
-        # Pour les caractères accentuées et éviter les problèmes d'encodages comme "&#xE9;" pour le "é". Utiliser le module HTML :
+        #Pour les caractères accentuées et éviter les problèmes d'encodages comme "&#xE9;" pour le "é". Utiliser le module HTML : 
         text = re.sub(
             r"&#x([0-9A-Za-z]+);",
-            lambda m: chr(
-                int(m.group(1), 16)
-            ),  # Créer une variable aléatoire "m" qui servira à traduire correctement le caractère qui pose problème, exemple "é" qui est traduit par &#xE9.
-            text,
-        )
-        text = re.sub(r"&#(\d+);", lambda m: chr(int(m.group(1))), text)
-
-        if not text:
+            lambda m : chr(int(m.group(1), 16)), #Créer une variable aléatoire "m" qui servira à traduire correctement le caractère qui pose problème, exemple "é" qui est traduit par &#xE9.
+            text
+            )
+        text = re.sub(
+            r"&#(\d+);",
+            lambda m : chr(int(m.group(1))),
+            text
+            )
+         
+        if not text : 
             return ""
         return text.strip()
-
 
 def extract_tag(content, tag):
     """Extrait le contenu d’une balise simple."""
@@ -106,49 +80,50 @@ def extract_tag(content, tag):
     # - <tag>...</tag>
     # - <ns:tag>...</ns:tag> (avec namespace éventuel)
     pattern = rf"<(?:\w+:)?{tag}[^>]*>(.*?)</(?:\w+:)?{tag}>"
-
+    
     # On cherche la première occurrence de cette balise
     match = re.search(pattern, content, re.DOTALL)
-
+    
     if match:
         # On nettoie les CDATA et on supprime les espaces en début et fin
         texte = clean_cdata(match.group(1))
-        if tag == "description":
+        if tag == "description" : 
             texte = clean_cdata(texte)
         return texte
     # Si la balise n'existe pas, on retourne une chaîne vide
     return ""
 
-
 def extract_items(xml_content, source_name):
     """Extrait les articles du flux RSS et retourne une liste de dictionnaires."""
-
-    # Extraire les catégories dans channel :
+    
+    #Extraire les catégories dans channel : 
     all_channels = re.findall(
-        r"<(?:\w+:)?channel\b[^>]*>(.*?)</(?:\w+:)?channel>",  # Chercher toutes les channels (s'il y en a plusieurs).
+        r"<(?:\w+:)?channel\b[^>]*>(.*?)</(?:\w+:)?channel>", #Chercher toutes les channels (s'il y en a plusieurs).
         xml_content,
-        re.DOTALL,
-    )
-    channel_content = all_channels[0] if all_channels else ""
+        re.DOTALL
+        )
+    channel_content = all_channels[0] if all_channels else "" 
     channel_propre = re.sub(
         r"<(?:\w+:)?item\b[^>]*>(.*?)</(?:\w+:)?item>",
         "",
         channel_content,
-        flags=re.DOTALL,
-    )
+        flags=re.DOTALL
+        ) 
     channel_categories = re.findall(
-        r"<(?:\w+:)?category\b[^>]*>(.*?)</(?:\w+:)?category>",  # Trouver les catégories dans channel.
+        r"<(?:\w+:)?category\b[^>]*>(.*?)</(?:\w+:)?category>", #Trouver les catégories dans channel.
         channel_propre,
-        re.DOTALL,
-    )
+        re.DOTALL
+        )       
     channel_categories = [clean_cdata(categ.strip()) for categ in channel_categories]
 
     # On récupère tous les blocs <item>...</item>
     # Le namespace éventuel est aussi accepté
     items = re.findall(
-        r"<(?:\w+:)?item\b[^>]*>(.*?)</(?:\w+:)?item>", xml_content, re.DOTALL
-    )
-
+        r"<(?:\w+:)?item\b[^>]*>(.*?)</(?:\w+:)?item>",
+        xml_content,
+        re.DOTALL
+        )
+   
     # Liste qui contiendra les métadonnées de chaque article
     metadonnees = []
 
@@ -172,34 +147,33 @@ def extract_items(xml_content, source_name):
 
         # date de publication
         article["date"] = extract_tag(item, "pubDate")
-
-        # Extraire les catégories dans items :
+        
+        #Extraire les catégories dans items : 
         item_categories = re.findall(
             r"<(?:\w+:)?(?:category)\b[^>]*>(.*?)</(?:\w+:)?(?:category)>",
             item,
-            re.DOTALL,
-        )
-        item_categories = [clean_cdata(categ.strip()) for categ in item_categories]
-
+            re.DOTALL
+            )
+        item_categories = [clean_cdata(categ.strip()) for categ in item_categories]        
+        
         article["categories"] = sorted(channel_categories + item_categories)
-
+        
         # On ajoute l’article à la liste finale
         metadonnees.append(article)
 
     return metadonnees
 
-
-# r2
-# Récupère le texte d'une balise.Retourne une chaîne vide si la balise est absente.
+    
+    
+#r2
+#Récupère le texte d'une balise.Retourne une chaîne vide si la balise est absente.
 def get_text(parent, tag):
     elem = parent.find(tag)
     if elem is not None and elem.text:
         return elem.text.strip()
     return ""
 
-
-# Traite UN fichier RSS XML Retourne une liste de dictionnaires (articles)
-
+#Traite UN fichier RSS XML Retourne une liste de dictionnaires (articles)
 
 def module_etree(chemin_fichier):
     articles = []
@@ -214,7 +188,9 @@ def module_etree(chemin_fichier):
 
     channel = root.find(".//channel")
     channel_categories = [
-        cat.text.strip() for cat in channel.findall("category") if cat.text
+        cat.text.strip()
+        for cat in channel.findall("category")
+        if cat.text
     ]
     if channel is None:
         return articles
@@ -230,12 +206,7 @@ def module_etree(chemin_fichier):
             "title": get_text(item, "title"),
             "content": clean_content,
             "date": get_text(item, "pubDate"),
-            "categories": sorted(
-                set(
-                    channel_categories
-                    + [cat.text.strip() for cat in item.findall("category") if cat.text]
-                )
-            ),
+            "categories": sorted(set(channel_categories + [cat.text.strip() for cat in item.findall("category") if cat.text]))            
         }
 
         articles.append(article)
@@ -243,10 +214,11 @@ def module_etree(chemin_fichier):
     return articles
 
 
-# 3
+
+#3
 """
 3ème méthode : un script avec le module feedparser pour générer les métadonnées de chaque lien URLs.
-On retrouvera les métadonnées suivantes :
+On retrouvera les métadonnées suivantes : 
 — l’identifiant (id) de l’article
 — la source : le nom du journal, qu’on peut approximer avec le nom du fichier
 — le titre de l’article
@@ -255,25 +227,20 @@ On retrouvera les métadonnées suivantes :
 — les catégories auxquelles appartient l’article
 """
 
-
-def metadonnees(
-    fichier_xml,
-):  # Pour le "fichier_xml" : sur le terminal, soit il faut taper le chemin jusqu'au fichier, soit taper le nom du fichier xml.
+def metadonnees(fichier_xml) : #Pour le "fichier_xml" : sur le terminal, soit il faut taper le chemin jusqu'au fichier, soit taper le nom du fichier xml. 
     """
     Récupérer les métadonnées de chaque article du flux.
     Arguments : le dossier contenant les fichiers xml.
     Return : cette fonction retourne une liste des métadonnées de chaque article dont l'id, la source, le contenu, la date et les catégories.
     """
-    feed = feedparser.parse(fichier_xml)  # Pour parser un flux RSS (ou atom).
-    metadonnees_articles = (
-        []
-    )  # Liste vide pour les métadonnées qu'on va récupérer dans chaque article grâce aux fichiers xml.
-
-    # Extraire toutes les métadonnées pour chaque fichier xml :
-    for entry in feed.entries:
-
-        # Pour les catégories :
-        # 1) Récupérer les "catégorie(s)" dans les fichiers xml :
+    feed = feedparser.parse(fichier_xml) #Pour parser un flux RSS (ou atom).
+    metadonnees_articles = [] #Liste vide pour les métadonnées qu'on va récupérer dans chaque article grâce aux fichiers xml.
+    
+    #Extraire toutes les métadonnées pour chaque fichier xml : 
+    for entry in feed.entries :
+        
+        #Pour les catégories : 
+        #1) Récupérer les "catégorie(s)" dans les fichiers xml : 
         channel_categories = [tag.get("term") for tag in feed.feed.get("tags", [])]
         item_categories = [tag.get("term") for tag in entry.get("tags", [])]
         categories = sorted(set(channel_categories + item_categories))
@@ -281,49 +248,48 @@ def metadonnees(
         #2) Conditions pour l'extraction des catégories et du résultats qu'il retourne (soit une ou plusieurs catégories, soit rien).
         if channel_categories and item_categories : #Afficher les catégories pour les fichiers xml "Figaro".
             categories = item_categories + channel_categories
-        else :
+        else : 
             if channel_categories and not item_categories : #Afficher les catégories pour les fichiers xml "Flux RSS".
                 categories = channel_categories
-            else :
+            else : 
                 if not channel_categories and item_categories : #Afficher les catégories pour les fichiers xml "Bast" et "ELucid".
                     categories = item_categories
                 if not channel_categories and not item_categories : #Afficher les catégories pour les fichiers xml "Libération".
                     categories = []
        """
-        # Pour la description - nettoyage de la description :
+        #Pour la description - nettoyage de la description :
         description = (
-            entry.get("description")
+            entry.get("description") 
             or entry.get("summary")
             or "No description or summary"
-        )
-        if (
-            description
-        ):  # Condition pour supprimer les balises présentes dans la description de certains fichiers xml. On veut garder que du texte. Module utilisé "BeautifulSoup" :
-            nettoyer_description = BeautifulSoup(description, "html.parser")
+            )
+        if description : #Condition pour supprimer les balises présentes dans la description de certains fichiers xml. On veut garder que du texte. Module utilisé "BeautifulSoup" : 
+            nettoyer_description = BeautifulSoup(description, "html.parser" )
             description_texte = nettoyer_description.get_text(" ", strip=True)
+           
+        #Extraire les metadonnées qu'on cherche pour chaque article et les ajouter aux metadonnees_articles :
+        metadonnees_articles.append({
+            "id" : (
+                entry.get("id")
+                or entry.get("link")
+                or "No id"
+                ), #Si la donnée n'apparaît pas dans le fichier xml, alors on notera "No id" pour absence d'identifiant.
+            "source" : fichier_xml,
+            "title" : entry.get("title", "No title"),
+            "content" : description_texte,
+            "date" : ( 
+                entry.get("published")
+                or entry.get("updated")
+                or "No published or updated"
+                ), 
+            "categories" : categories
+        })
+        
+    return metadonnees_articles 
+    
 
-        # Extraire les metadonnées qu'on cherche pour chaque article et les ajouter aux metadonnees_articles :
-        metadonnees_articles.append(
-            {
-                "id": (
-                    entry.get("id") or entry.get("link") or "No id"
-                ),  # Si la donnée n'apparaît pas dans le fichier xml, alors on notera "No id" pour absence d'identifiant.
-                "source": fichier_xml,
-                "title": entry.get("title", "No title"),
-                "content": description_texte,
-                "date": (
-                    entry.get("published")
-                    or entry.get("updated")
-                    or "No published or updated"
-                ),
-                "categories": categories,
-            }
-        )
-
-    return metadonnees_articles
-
-
-# Choix de l'utilisateur pour lancer le programme à partir de trois méthodes :
+ 
+#Choix de l'utilisateur pour lancer le programme à partir de trois méthodes :
 def read_rss(method, path):
     """
     3 méthodes proposées pour lancer le programme.
@@ -342,110 +308,75 @@ def read_rss(method, path):
         sys.exit(1)
 
 
-# -------------Semaine 3
-def filtrage(filtres: list, articles: list[dict]) -> list[dict]:
-    """applique successivement les filtres et qui renvoie la liste filtrée (crée une nouvelle liste sans modifier l'ancienne)."""
-    filtered_articles = []
-    for article in articles:
-        check_filtre = True
-        for filtre in filtres:
-            if not filtre(article):
-                check_filtre = False
-                break
-        if check_filtre:
-            filtered_articles.append(article)
-    return filtered_articles
 
+# Semaine 3
 
 # r1 : filtrage par date
-def filtre_date(item: dict) -> bool:
-    """fonction de filtrage en fonction de la date.
-    Les dates doivent être parsées avec le module 'datetime'"""
-    return True
+def filtrage_date():
+    pass
 
 
-# r2 : filtrage par source
-def filtre_source(item: dict) -> bool:
-    """fonction de filtrage en fonction de la ou des sources (nom du journal).
-    1) filtrage des sources
-    2) garantir l'unicité des articles"""
-    return True
+# r2 : filtrage par la source
+def filtrage_source (articles,source_voulu):
+    liste_article_filtre = []
+
+    if isinstance(source_voulu, str): #Verifie que la source n'est pas un str. Dans les cas ou il n'y a qu'un source et donc un str, le transforme en liste
+        source_voulu = [source_voulu]
+
+    source_sans_maj = [s.lower() for s in source_voulu]
+
+    for a in articles:
+        source_actuel = a["source"].lower()
+        #print (a)
+        #print (source_actuel)
+        for s in source_sans_maj:
+            #print (s)
+            if s in source_actuel:
+                liste_article_filtre.append(a)
+
+    return liste_article_filtre
+
+def filtrage_repetition(articles) : #enlève les articles qui seraient en double
+    liste_article =[]
+    for a in articles:
+        if a["id"] not in liste_article:
+            liste_article.append(a)
+    return liste_article
 
 
 # r3 : filtrage par catégorie
-def filtre_cat(item: dict) -> bool:
-    """fonction de filtrage acceptant une ou plusieurs catégories indiquées dans les balises 'category' des fichiers XML."""
-    return True
+def filtrage_cat():
+    pass
 
 
-def main():
-    parser = argparse.ArgumentParser(
-        description="Lire un fichier xml (flux RSS) avec une méthode à choisir"
-    )
-
+def main() : 
+    parser = argparse.ArgumentParser(description = "Lire un fichier xml (flux RSS) avec une méthode à choisir")
     parser.add_argument(
-        "-w", "--directory-walker", choices=("os", "pathlib", "glob"), default="glob"
-    )
-
-    parser.add_argument(
-        "methode",
-        choices=["re", "etree", "feedparser"],
-        help="Méthode à utiliser : re, etree ou feedparser",
-    )
-
-    parser.add_argument(
-        "fichier_xml", help="Chemin vers un fichier XML ou un dossier contenant des XML"
-    )
-
+        "methode", 
+        choices = ["re", "etree", "feedparser"],
+        help = "Mettre la méthode choisie entre le modulee re, le module etree et le module feedparser"
+        )
+    parser.add_argument("fichier_xml", help = "Ajouter le chemin vers le fichier xml")
     args = parser.parse_args()
+    articles = read_rss(args.methode, args.fichier_xml)
 
-    # Sélection du walker
-    if args.directory_walker == "os":
-        files = walk_os(args.fichier_xml)
-    elif args.directory_walker == "pathlib":
-        files = walk_pathlib(args.fichier_xml)
-    elif args.directory_walker == "glob":
-        files = walk_glob(args.fichier_xml)
-    else:
-        raise KeyError(f"Unknown walker: {args.directory_walker}")
-
-    if not files:
-        print("Aucun fichier XML trouvé.")
-        sys.exit(1)
-
-    all_articles = []
-
-    for f in files:
-        articles = read_rss(args.methode, f)
-        all_articles.extend(articles)
-
-    print(f"\nNombre total d'articles : {len(all_articles)}\n")
-
-    # TODO
-    filtres = []
-
-    all_articles = filtrage(filtres, all_articles)
-
-    for article in all_articles:
-        for key, value in article.items():
+    print(f"Nombre d'articles : {len(articles)}\n")
+    
+    for article in articles : 
+        for key, value in article.items() :
             print(key, ":", value)
         print()
-
-
-if __name__ == "__main__":
+    
+if __name__ == "__main__" : 
     main()
-
+    
 
 ####### POUR L'UTILISATEUR :
-# Lancement du script :
-# 1) Ouvrir un terminal et aller dans un environnement virtuel, exemple : source venvs/plurital/bin/activate.
-# Sans un environnement virtuel, l'utilisation du module feedparser pour la méthode r3 ne fonctionnera pas.
-# 2) Installer feedparser sur le terminal avec la commande suivante : pip install feedparser
-# 3) Pour ouvrir ce script, utiliser cette commande avec ces arguments : python3 fichier.py methode chemin/vers/fichier.xml
-# Pour lancer plusieur fichier faire python3 rss_reader.py -w glob re Corpus/
-# Apres -w mettre glob, pathlib ou os
+#Lancement du script : 
+#1) Ouvrir un terminal et aller dans un environnement virtuel, exemple : source venvs/plurital/bin/activate.
+#Sans un environnement virtuel, l'utilisation du module feedparser pour la méthode r3 ne fonctionnera pas.
+#2) Installer feedparser sur le terminal avec la commande suivante : pip install feedparser
+#3) Pour ouvrir ce script, utiliser cette commande avec ces arguments : python3 fichier.py methode chemin/vers/fichier.xml
 # Exemple : python3 rss_feedparser.py r3 "Le Figaro - Vidéos.xml"
-# N.B. : Parfois, certains fichiers peuvent avoir des "espaces", il faut donc les appeller avec des guillemets (sinon, la machine va croire que ce sont des arguments : d'où l'erreur d'affichage "error: unrecognized arguments:").
-
-
+# N.B. : Parfois, certains fichiers peuvent avoir des "espaces", il faut donc les appeller avec des guillemets (sinon, la machine va croire que ce sont des arguments : d'où l'erreur d'affichage "error: unrecognized arguments:"). 
 #######
