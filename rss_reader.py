@@ -358,20 +358,18 @@ def filtrage(filtres: list, articles: list[dict]) -> list[dict]:
 
 
 # r1 : filtrage par date
+# r1 : filtrage par date
 def filtre_date(item: dict, date_start_str: str = None, date_end_str: str = None) -> bool:
-    """
-    Filtre les articles selon une période chronologique (r1).
-    """
+
     from dateutil import parser as date_parser
     from datetime import datetime
 
-    # Si l'article n'a pas de date, on le garde par défaut
+    # Si l'article n'a pas de date, on le garde par défaut pour ne pas perdre d'information
     if not item.get("date"):
         return True
 
     try:
-        # On convertit la date et on retire le fuseau horaire (.replace(tzinfo=None))
-        # Cela permet une comparaison directe sans erreur
+        # Conversion de la date de l'article et suppression du fuseau horaire pour permettre une comparaison simple avec les entrées utilisateur
         item_date = date_parser.parse(item["date"]).replace(tzinfo=None)
 
         # Filtrage par date de début
@@ -387,7 +385,7 @@ def filtre_date(item: dict, date_start_str: str = None, date_end_str: str = None
                 return False
 
     except (ValueError, TypeError):
-        # En cas d'erreur de lecture de la date, on conserve l'article
+        # En cas d'erreur de lecture de la date, on conserve l'article par sécurité
         return True
 
     return True
