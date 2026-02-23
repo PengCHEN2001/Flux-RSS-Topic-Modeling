@@ -345,38 +345,52 @@ def filtrage_date():
 
 
 # r2 : filtrage par la source
-def filtrage_source (articles : list,source_voulu: list[str]):
+def filtrage(filtres: list, articles: list[dict],source_voulu: list[str] | None = None) -> list[dict]:
+
     liste_article_filtre = []
+    for f in filtres:
+        if f == "source":
+            if source_voulu != None:
+                liste_article =[]
+                if isinstance(source_voulu, str): #Verifie que la source n'est pas un str. Dans les cas ou il n'y a qu'un source et donc un str seulement, le transforme en liste
+                    source_voulu = [source_voulu]
 
-    if isinstance(source_voulu, str): #Verifie que la source n'est pas un str. Dans les cas ou il n'y a qu'un source et donc un str seulement, le transforme en liste
-        source_voulu = [source_voulu]
+                source_sans_maj = [s.lower() for s in source_voulu]
 
-    source_sans_maj = [s.lower() for s in source_voulu]
-
-    for a in articles:
-        source_actuel = a["source"].lower()
-        #print (a)
-        #print (source_actuel)
-        for s in source_sans_maj:
-            #print (s)
-            if s in source_actuel:
-                liste_article_filtre.append(a)
+                for a in articles:
+                    article = filtrage_source (a, source_sans_maj)
+                    if article:
+                        liste_article.append(a)
+                liste_article_filtre = filtrage_repetition( liste_article)
+        else :
+            liste_article_filtre = [{"article trouvé": None }]
 
     return liste_article_filtre
 
-def filtrage_repetition(articles: list) : #enlève les articles qui seraient en double
-    liste_article =[]
-    for a in articles:
-        if a["id"] not in liste_article:
-            liste_article.append(a)
-    return liste_article
+def filtrage_source(article: dict, source: list[str]) -> bool:
+    source_actuel = article["source"].lower()
 
+    for s in source:
+        if s.lower() in source_actuel:
+            return True
+
+    return False
+
+
+def filtrage_repetition(articles: list[dict]) -> list[dict]:
+    liste_article = []
+    liste_ids = []
+
+    for a in articles:
+        if a["id"] not in liste_ids:
+            liste_ids.append(a["id"])
+            liste_article.append(a)
+
+    return liste_article
 
 # r3 : filtrage par catégorie
 def filtrage_cat():
     pass
-
-
 
 def main():
     parser = argparse.ArgumentParser(
@@ -401,6 +415,13 @@ def main():
         help="Chemin vers un fichier XML ou un dossier contenant des XML"
     )
 
+    parser.add_argument(
+    "-s",
+    "--source",
+    nargs="+",
+    help="Filtrer par une ou plusieurs sources"
+)
+
     args = parser.parse_args()
 
     # Sélection du walker
@@ -417,32 +438,21 @@ def main():
         print("Aucun fichier XML trouvé.")
         sys.exit(1)
 
-    all_articles = []
 
-    for f in files:
-        articles = read_rss(args.methode, f)
-        all_articles.extend(articles)
+    articles = []
+    for file in files:
+        articles.extend(read_rss(args.methode, file))
 
-    print(f"\nNombre total d'articles : {len(all_articles)}\n")
+        if args.source:
+            articles = filtrage(["source"], articles, source_voulu=args.source)
 
-    for article in all_articles:
+#Affichage des resultats
+    print(f"\nNombre d'articles : {len(articles)}\n")
+
+    for article in articles:
         for key, value in article.items():
-            print(key, ":", value)
+            print(f"{key}: {value}")
         print()
-
-    print(f"Nombre d'articles : {len(articles)}\n")
-
-    for article in articles :
-        for key, value in article.items() :
-            print(key, ":", value)
-        print()
-
-    articles = read_rss(args.methode, args.fichier_xml)
-
-    if args.source:
-        articles_filtre = filtrage_source(articles, args.source)
-        articles_filtre = filtrage_repetition(articles_filtre)
-
 
 if __name__ == "__main__" :
     main()
