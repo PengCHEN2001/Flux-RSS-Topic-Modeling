@@ -85,7 +85,19 @@ def filtre_source(item: dict) -> bool:
     return True
 ```
 #### Difficultés
+1. Problèmes lorqu'une seule source est données.
+Python interprétait parfois l'argument comme une chaîne de caractères et non comme une liste. Le programme parcourait alors la chaîne lettre par lettre (b, l, a, s, t), ce qui produisait le double de résultats dont des faux résultats.
+2. Sensible à la casse.
+Les noms des sources dans les flux RSS ne sont pas homogènes (ex : "Blast -- articles.xml", "BFM --.xml"). Il faut donc qu'une entrée simple de l'utilisateur soit comprise et puisse récuperer les articles voulu.
+3. Transformer les fonctions fonctions filtrage en fonction qui renvois un bool et qui est utilisé dans une plus grosse fonction. Ne dois pas traiter tout les articles mais juste un.
+
 #### Solutions
+1. Forcer la récupération sous forme de liste via argparse.
+L’utilisation de nargs="+" dans le parser garantit que l’argument --source est toujours une liste, même si une seule source est fournie. Cela évite toute itération accidentelle caractère par caractère.
+2. Normalisation des données et verification avec in
+Grâce à .lower() et .strip(). Les chaînes issues du flux RSS et celles saisies par l’utilisateur sont transformées en minuscules avant comparaison, rendant le filtre moin sensible à la casse. Plutôt que de comparer strictement deux chaînes, la condition vérifie si la source recherchée est incluse dans la valeur du champ "source". Cela permet de gérer les formats du type "Blast -- articles.xml".
+3. Transformation en fonction booléenne
+La première version prenait une liste d’articles en entrée et renvoyait directement une liste filtrée. Pour la transformé en booléenne, il a fallut la moddfier en deplaçant une partie des verification et normalisation dans la fonction filtrage globale. Pour la fonction de gérant les répétition le choix à était fait de la garder comme dans la première version pour ne pas alourdir le script.
 
 ### r3 : filtrage par catégorie
 
