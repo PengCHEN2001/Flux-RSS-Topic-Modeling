@@ -361,7 +361,9 @@ def filtrage(filtres: list, articles: list[dict]) -> list[dict]:
 
 
 # r1 : filtrage par date
-def filtre_date(item: dict, date_start_str: str | None = None, date_end_str: str | None = None) -> bool:
+def filtre_date(
+    item: dict, date_start_str: str | None = None, date_end_str: str | None = None
+) -> bool:
     """fonction de filtrage en fonction de la date
     Les dates doivent être parsées avec le module 'datetime'"""
 
@@ -393,15 +395,27 @@ def filtre_date(item: dict, date_start_str: str | None = None, date_end_str: str
 
 
 # r2 : filtrage par source
-def filtre_source(item: dict) -> bool:
-    """fonction de filtrage en fonction de la ou des sources (nom du journal).
-    1) filtrage des sources
-    2) garantir l'unicité des articles"""
-    return True
+def filtrage_source(article: dict, source: list[str]) -> bool:
+    source_actuel = article["source"].lower()
+    for s in source:
+        if s.lower() in source_actuel:
+            return True
+    return False
+
+
+# r2 : dédoublonnage
+def filtrage_repetition(articles: list[dict]) -> list[dict]:
+    liste_article = []
+    liste_ids = []
+    for a in articles:
+        if a["id"] not in liste_ids:
+            liste_ids.append(a["id"])
+            liste_article.append(a)
+    return liste_article
 
 
 # r3 : filtrage par catégorie
-def filtre_cat(article: dict, categories: list[str]) -> bool|None:
+def filtre_cat(article: dict, categories: list[str]) -> bool | None:
     """fonction de filtrage acceptant une ou plusieurs catégories indiquées dans les balises 'category' des fichiers XML."""
     check_cat = True
     article_categories = [cat.lower() for cat in article.get("categories", [])]
@@ -415,17 +429,16 @@ def filtre_cat(article: dict, categories: list[str]) -> bool|None:
 def main():
     parser = argparse.ArgumentParser(
         description="Lire un fichier xml (flux RSS) avec une méthode à choisir",
-        epilog="Exemple d'utilisation avec filtre : python3 rss_reader.py -w glob feedparser ./corpus/ -c spiritueux vins"
+        epilog="Exemple d'utilisation avec filtre : python3 rss_reader.py -w glob feedparser ./corpus/ -c spiritueux vins",
     )
 
     parser.add_argument(
-        "-w", "--directory-walker",
-        choices=("os", "pathlib", "glob"),
-        default="glob"
+        "-w", "--directory-walker", choices=("os", "pathlib", "glob"), default="glob"
     )
 
     parser.add_argument(
-        "-m", "--methode",
+        "-m",
+        "--methode",
         choices=("re", "etree", "feedparser"),
         help="Méthode à utiliser : re, etree ou feedparser",
         default="feedparser",
@@ -439,9 +452,17 @@ def main():
     )
 
     parser.add_argument(
-        "-c", "--categories",
-        nargs="+", # pour récupérer une liste de mots
-        help="Filtrer par une ou plusieurs catégories."
+        "-s",
+        "--source",
+        nargs="+",
+        help="Filtrer par une ou plusieurs sources (ex: BFMTV Figaro)",
+    )
+
+    parser.add_argument(
+        "-c",
+        "--categories",
+        nargs="+",  # pour récupérer une liste de mots
+        help="Filtrer par une ou plusieurs catégories.",
     )
 
     # r1 : filtrage par date
@@ -464,15 +485,23 @@ def main():
         print("Aucun fichier XML trouvé.")
         sys.exit(1)
 
-    all_articles = []
+    articles = []
 
-    for f in files:
-        articles = read_rss(args.methode, f)
-        all_articles.extend(articles)
+    for file in files:
+        articles.extend(read_rss(args.methode, file))
 
-    print(f"\nNombre total d'articles : {len(all_articles)}\n")
+    print(f"\nNombre total d'articles extraits : {len(articles)}")
 
+    # Dédoublonnage
+    articles = filtrage_repetition(articles)
+
+    print(f"\nNombre total d'articles uniques : {len(articles)}\n")
+    
     filtres_actifs = []
+    
+    if args.source:
+        sources = [s.lower() for s in args.source]
+        filtres_actifs.append(lambda item: filtrage_source(item, sources))
 
     if args.start or args.end:
         filtres_actifs.append(lambda item: filtre_date(item, args.start, args.end))
@@ -482,12 +511,15 @@ def main():
         filtre_r3 = lambda article: filtre_cat(article, args.categories)
         filtres_actifs.append(filtre_r3)
 
-    all_articles = filtrage(filtres_actifs, all_articles)
+    # Applique tous les filtres
+    articles = filtrage(filtres_actifs, articles)
 
-    for article in all_articles:
+    # Affichage des résultats
+    for article in articles:
         for key, value in article.items():
-            print(key, ":", value)
+            print(f"{key}: {value}")
         print()
+
 
 if __name__ == "__main__":
     main()
@@ -503,9 +535,9 @@ if __name__ == "__main__":
 # Apres -w mettre glob, pathlib ou os
 # Exemple : python3 rss_feedparser.py r3 "Le Figaro - Vidéos.xml"
 # N.B. : Parfois, certains fichiers peuvent avoir des "espaces", il faut donc les appeller avec des guillemets (sinon, la machine va croire que ce sont des arguments : d'où l'erreur d'affichage "error: unrecognized arguments:").
-# 
+#
 # Fonctionnement des filtres (semaine 3) :
-# Si vous utilisez le filtre par catégorie (-c), veillez à toujours placer cet argument et ses mots-clés 
+# Si vous utilisez le filtre par catégorie (-c), veillez à toujours placer cet argument et ses mots-clés
 # à la fin de la commande, sinon ils absorberont les autres arguments obligatoires.
 # Exemple : python3 rss_reader.py -w glob feedparser ../corpus/ -c vins spiritueux
 #######
