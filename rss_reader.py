@@ -361,9 +361,34 @@ def filtrage(filtres: list, articles: list[dict]) -> list[dict]:
 
 
 # r1 : filtrage par date
-def filtre_date(item: dict) -> bool:
-    """fonction de filtrage en fonction de la date.
+def filtre_date(item: dict, date_start_str: str | None = None, date_end_str: str | None = None) -> bool:
+    """fonction de filtrage en fonction de la date
     Les dates doivent être parsées avec le module 'datetime'"""
+
+    # Si l'article n'a pas de date, on le garde par défaut pour ne pas perdre d'information
+    if not item.get("date"):
+        return True
+
+    try:
+        # Conversion de la date de l'article et suppression du fuseau horaire pour permettre une comparaison simple avec les entrées utilisateur
+        item_date = date_parser.parse(item["date"]).replace(tzinfo=None)
+
+        # Filtrage par date de début
+        if date_start_str:
+            d_start = date_parser.parse(date_start_str).replace(tzinfo=None)
+            if item_date < d_start:
+                return False
+
+        # Filtrage par date de fin
+        if date_end_str:
+            d_end = date_parser.parse(date_end_str).replace(tzinfo=None)
+            if item_date > d_end:
+                return False
+
+    except (ValueError, TypeError):
+        # En cas d'erreur de lecture de la date, on conserve l'article par sécurité
+        return True
+
     return True
 
 
