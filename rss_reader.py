@@ -11,6 +11,8 @@ import feedparser  # r3
 import argparse  # Pour appeler notre fonction.
 from bs4 import BeautifulSoup  # Pour nettoyer les balises dans un texte.
 import sys
+from datetime import datetime
+from dateutil import parser as date_parser
 
 # FONCTIONS
 # ----------------Semaines 1 & 2
@@ -360,7 +362,7 @@ def filtrage(filtres: list, articles: list[dict]) -> list[dict]:
 
 # r1 : filtrage par date
 def filtre_date(item: dict) -> bool:
-    """fonction de filtrage en fonction de la date
+    """fonction de filtrage en fonction de la date.
     Les dates doivent être parsées avec le module 'datetime'"""
     return True
 
@@ -417,7 +419,9 @@ def main():
         help="Filtrer par une ou plusieurs catégories."
     )
 
-    filtres_actifs = []
+    # r1 : filtrage par date
+    parser.add_argument("--start", help="Date de début pour le filtrage (AAAA-MM-JJ)")
+    parser.add_argument("--end", help="Date de fin pour le filtrage (AAAA-MM-JJ)")
 
     args = parser.parse_args()
 
@@ -443,6 +447,11 @@ def main():
 
     print(f"\nNombre total d'articles : {len(all_articles)}\n")
 
+    filtres_actifs = []
+
+    if args.start or args.end:
+        filtres_actifs.append(lambda item: filtre_date(item, args.start, args.end))
+
     if args.categories:
         # Fonction lambda ne prenant que l'article en argument (qui sera fourni à filtrage())
         filtre_r3 = lambda article: filtre_cat(article, args.categories)
@@ -454,7 +463,6 @@ def main():
         for key, value in article.items():
             print(key, ":", value)
         print()
-
 
 if __name__ == "__main__":
     main()
