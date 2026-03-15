@@ -1,1 +1,4 @@
 .DS_Store
+Corpus/
+venv/
+*:Zone.Identifier
