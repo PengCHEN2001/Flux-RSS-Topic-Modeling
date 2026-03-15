@@ -18,7 +18,7 @@ from dateutil import parser as date_parser
 # ----------------Semaines 1 & 2
 
 
-# Correction ajoutée ultérieurement pour que le script puisse lire un corpus (et non un seul fichier XML)
+"""# Correction ajoutée ultérieurement pour que le script puisse lire un corpus (et non un seul fichier XML)
 def walk_os(sample: str) -> list[str]:
     if os.path.isfile(sample):
         if sample.endswith(".xml"):
@@ -66,7 +66,7 @@ def walk_glob(sample: str) -> list[str]:
     if path.is_dir():
         return sorted(str(p.resolve()) for p in path.rglob("*.xml"))
 
-    return []
+    return []"""
 
 
 # r1
@@ -432,9 +432,8 @@ def main():
         epilog="Exemple d'utilisation avec filtre : python3 rss_reader.py -w glob feedparser ./corpus/ -c spiritueux vins",
     )
 
-    parser.add_argument(
-        "-w", "--directory-walker", choices=("os", "pathlib", "glob"), default="glob"
-    )
+    #parser.add_argument(
+    #    "-w", "--directory-walker", choices=("os", "pathlib", "glob"), default="glob")
 
     parser.add_argument(
         "-m",
@@ -471,7 +470,7 @@ def main():
 
     args = parser.parse_args()
 
-    # Sélection du walker
+    """# Sélection du walker
     if args.directory_walker == "os":
         files = walk_os(args.fichier_xml)
     elif args.directory_walker == "pathlib":
@@ -488,7 +487,14 @@ def main():
     articles = []
 
     for file in files:
-        articles.extend(read_rss(args.methode, file))
+        articles.extend(read_rss(args.methode, file))"""
+    # vérifie que le fichier XML existe
+    fichier = Path(args.fichier_xml)
+    if not fichier.is_file():
+        print(f"Erreur : le fichier {fichier} n'existe pas.")
+        sys.exit(1)
+    # lire le fichier unique
+    articles = read_rss(args.methode, str(fichier))
 
     print(f"\nNombre total d'articles extraits : {len(articles)}")
 
