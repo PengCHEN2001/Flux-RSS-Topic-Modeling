@@ -50,8 +50,8 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Tester la sérialisation des corpus")
-    parser.add_argument("input", help="Fichier source")
-    parser.add_argument("output", help="Fichier cible")
+    parser.add_argument("input", type=Path, help="Fichier source")
+    parser.add_argument("output", type=Path, help="Fichier cible")
     parser.add_argument("--from-format", choices=["json", "pickle", "xml"], required=True)#passer d'un format à un autre 
     parser.add_argument("--to-format", choices=["json", "pickle", "xml"], required=True)#passer d'un format à un autre 
     args = parser.parse_args()
