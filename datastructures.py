@@ -14,8 +14,23 @@ class Article:
     date: str
     categories: list[str] = field(default_factory=list)
 
-#Exercice 2 : Fonctions R3 (Pickle)
+#r1
+def save_xml(corpus: list[Article], output_file: Path) -> None:
+    #proposera les fonctions de sauvegarde 
+    pass
 
+def load_xml(input_file: Path) -> list[Article]:
+    #chargement en XML (on peut utiliser etree pour le créer)
+    pass
+
+#r2
+def save_json(corpus: list[Article], output_file: Path) -> None:
+    pass
+
+def load_json(input_file: Path) -> list[Article]:
+    pass
+
+#r3
 def save_pickle(corpus: list[Article], output_file: Path) -> None:
     #Sauvegarde la liste d'articles au format binaire pickle.
     with open(output_file, 'wb') as f: #wb : write binary
@@ -26,7 +41,7 @@ def load_pickle(input_file: Path) -> list[Article]:
         #Charge et retourne une liste d'articles depuis un fichier pickle.
         with open(input_file, 'rb') as f: #rb : read binary
             return pickle.load(f)
-    except Exception as e:#ajout gestion d'erreur
+    except Exception as e: #ajout gestion d'erreur
         print(f"erreur lors du chargement de pickle: {e}")
         return []
 
@@ -50,16 +65,20 @@ if __name__ == "__main__":
     if args.format_in == "pickle":
         corpus = load_pickle(args.input_file)
     elif args.format_in == "json":
-        pass # r2: Appeler load_json(args.input_file)
+        corpus = load_json(args.input_file)
     elif args.format_in == "xml":
-        pass # r1: Appeler load_xml(args.input_file)
+        corpus = load_xml(args.input_file)
+    else:
+        raise ValueError(f'format inconnu: {args.format_in}')
 
     # 2. Sauvegarde du corpus
     if args.format_out == "pickle":
         save_pickle(corpus, args.output_file)
     elif args.format_out == "json":
-        pass # r2: Appeler save_json(corpus, args.output_file)
+        save_json(corpus, args.output_file)
     elif args.format_out == "xml":
-        pass # r1: Appeler save_xml(corpus, args.output_file)
+        save_xml(corpus, args.output_file)
+    else:
+        raise ValueError(f'format inconnu: {args.format_out}')
 
     print(f"Conversion terminée : {args.input_file} ({args.format_in}) -> {args.output_file} ({args.format_out})")
