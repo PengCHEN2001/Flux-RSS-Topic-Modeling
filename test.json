@@ -1,0 +1,22 @@
+[
+  {
+    "id": "1",
+    "source": "LeMonde",
+    "title": "Titre 1",
+    "content": "Contenu 1",
+    "date": "2026-03-16",
+    "categories": [
+      "politique"
+    ]
+  },
+  {
+    "id": "2",
+    "source": "CNN",
+    "title": "Titre 2",
+    "content": "Contenu 2",
+    "date": "2026-03-16",
+    "categories": [
+      "tech"
+    ]
+  }
+]
