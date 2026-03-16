@@ -2,6 +2,53 @@
 
 ## Exercice 1
 
+### R2 - Anne-lx
+Tout fonctionnait bien cette semaine donc on a pas eu de correction à faire. 
+Je me suis occupée de séparer le code dans les deux fichiers distincts, j'ai galeré un petit moment pour réussir à tout démeler mais finalement ça a été.
+
+**Difficultés rencontrées:**
+Pour rss_reader j'ai eu du mal à réaliser qu'il fallait enlever le walker, ce qui a fait que j'ai tourné en rond pendant un moment.
+```py
+    """# Sélection du walker
+    if args.directory_walker == "os":
+        files = walk_os(args.fichier_xml)
+    elif args.directory_walker == "pathlib":
+        files = walk_pathlib(args.fichier_xml)
+    elif args.directory_walker == "glob":
+        files = walk_glob(args.fichier_xml)
+    else:
+        raise KeyError(f"Unknown walker: {args.directory_walker}")
+
+    if not files:
+        print("Aucun fichier XML trouvé.")
+        sys.exit(1)
+
+    articles = []
+
+    for file in files:
+        articles.extend(read_rss(args.methode, file))"""
+```
+Pour rss_parcours j'ai du modifier quelques lignes parce que ça ne marchait pas, en effet il fallait utiliser des dictionnaires au lieu de données avec des attributs directs.
+
+```py 
+def filtre_date(article: Article, start=None, end=None):
+    # modif article.date en 
+    if not article["date"]:
+        return True
+    # modif item_date = date_parser.parse(article.date).replace(tzinfo=None) en 
+    try:
+        item_date = date_parser.parse(article["date"]).replace(tzinfo=None)
+```
+avant l'article était un objet avec un attribut .date mais maintenant c'est un dico du coup on accède grace à la clef date
+
+```py
+def filtre_source(article: Article, sources):
+    #modif if s.lower() in article.source.lower() en 
+    for s in sources:
+        if s.lower() in article["source"].lower():
+```
+etc, toutes les modifications sont indiquées directement dans le code.
+
 ### R3 - Anna Ushmarina
 Cette semaine le code hérité est propre et fonctionnel : nous avons pu passé directement à l'Exercice 1. J'ai initialisé datastructures.py et défini la @dataclass Article avec ses champs en anglais.
 
