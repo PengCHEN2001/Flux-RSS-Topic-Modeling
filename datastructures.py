@@ -45,7 +45,7 @@ def save_json(corpus: list[Article], output_file: Path) -> None:
         }
 
         #ajouter ce dico à la liste
-        #données.append(article_dict)
+        données.append(article_dict) #enlevé le commentaire ici pour que tout fonctionne
     #ouvrir fichier de sortir en écriture ("w")    
     with open(output_file, "w", encoding="utf-8") as f:
         #json.dump va écrire la structure python dans json
