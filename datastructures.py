@@ -1,6 +1,10 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-
+import sys
+import argparse
+import json
+import pickle
+import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 import json
@@ -13,15 +17,52 @@ class Article:
     content: str
     date: str
     categories: list[str] = field(default_factory=list)
-
 #r1
 def save_xml(corpus: list[Article], output_file: Path) -> None:
-    #proposera les fonctions de sauvegarde 
-    pass
+    """Sauvegarde une liste d'articles en fichier XML"""
+    output_file = Path(output_file)
+    # Créer le répertoire parent s'il n'existe pas
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    root = ET.Element("corpus")
+    for art in corpus:
+        item = ET.SubElement(root, "item")
+        for key, value in asdict(art).items():
+            child = ET.SubElement(item, key)
+            if isinstance(value, list):
+                child.text = "|".join(value)
+            else:
+                child.text = str(value)
+    tree = ET.ElementTree(root)
+    tree.write(output_file, encoding='utf-8', xml_declaration=True)
 
 def load_xml(input_file: Path) -> list[Article]:
-    #chargement en XML (on peut utiliser etree pour le créer)
-    pass
+    """Charge une liste d'articles depuis un fichier XML"""
+    input_file = Path(input_file)
+
+    if not input_file.exists():
+        raise FileNotFoundError(f"Fichier XML non trouvé: {input_file}")
+
+    try:
+        tree = ET.parse(input_file)
+        root = tree.getroot()
+
+        articles = []
+        for item in root.findall("item"):
+            cats_raw = item.findtext("categories", "")
+            cats_list = cats_raw.split("|") if cats_raw else []
+            articles.append(Article(
+                id=item.findtext("id", ""),
+                source=item.findtext("source", ""),
+                title=item.findtext("title", ""),
+                content=item.findtext("content", ""),
+                date=item.findtext("date", ""),
+                categories=[c for c in cats_list if c]
+            ))
+        return articles
+
+    except ET.ParseError as e:
+        raise ValueError(f"Fichier XML invalide: {e}")
 
 #r2
 def save_json(corpus: list[Article], output_file: Path) -> None:
@@ -88,12 +129,18 @@ def load_json(input_file: Path) -> list[Article]:
 
 #r3
 def save_pickle(corpus: list[Article], output_file: Path) -> None:
-    ##proposera les fonctions de sauvegarde 
-    pass
+    #Sauvegarde la liste d'articles au format binaire pickle.
+    with open(output_file, 'wb') as f: #wb : write binary
+        pickle.dump(corpus, f)
 
 def load_pickle(input_file: Path) -> list[Article]:
-    #chargement en format pickle
-    pass
+    try:#ajout gestion d'erreur
+        #Charge et retourne une liste d'articles depuis un fichier pickle.
+        with open(input_file, 'rb') as f: #rb : read binary
+            return pickle.load(f)
+    except Exception as e: #ajout gestion d'erreur
+        print(f"erreur lors du chargement de pickle: {e}")
+        return []
 
 
 
