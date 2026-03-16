@@ -1,5 +1,6 @@
+.DS_Store
 Corpus/
 venv/
 *:Zone.Identifier
-.DS_Store
 __pycache__/
+

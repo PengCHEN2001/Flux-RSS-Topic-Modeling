@@ -7,10 +7,10 @@ import pickle
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
-import json
 
 @dataclass
 class Article:
+    """Classe représentant un article RSS"""
     id: str
     source: str
     title: str
@@ -60,72 +60,15 @@ def load_xml(input_file: Path) -> list[Article]:
                 categories=[c for c in cats_list if c]
             ))
         return articles
-
+        
     except ET.ParseError as e:
         raise ValueError(f"Fichier XML invalide: {e}")
-
 #r2
 def save_json(corpus: list[Article], output_file: Path) -> None:
-    #sauvegarde un corpus d'article dans un json
-    #corpus --> liste d'ojbets Article
-    #output_file --> chemin fichier sortie
-
-    #liste qui va contenir les articles converti en dico
-    donnees= []
-    
-    #on parcourt tous les articles du corpus
-    for article in corpus:
-        #donnees.append(asdict(article))
-        article_dict= {
-            "id": article.id,
-            "source": article.source,
-            "title": article.title,
-            "content": article.content,
-            "date": article.date,
-            "categories": article.categories
-        }
-
-        #ajouter ce dico à la liste
-        données.append(article_dict) #enlevé le commentaire ici pour que tout fonctionne
-    #ouvrir fichier de sortir en écriture ("w")    
-    with open(output_file, "w", encoding="utf-8") as f:
-        #json.dump va écrire la structure python dans json
-        #ensure_ascii=False --> on garde les acccents
-        #indent=2 --> rendre fichier lisible
-        json.dump(donnees, f, ensure_ascii=False, indent=2)
-
+    pass
 
 def load_json(input_file: Path) -> list[Article]:
-    #chargement en format json 
-    #input_file --> chemin vers json à lire
-    #retourne --> liste d'obejts Article
-
-    #on ouvre le fichier json
-    with open(input_file, "r", encoding="utf-8") as f:
-        donnees= json.load(f) #devient une liste de dico
-
-    #liste qui va contenit les obj Article recrée    
-    corpus=[]
-
-    #on parcourt chaq dico 
-    for item in donnees:
-        #on recrée un obj Article avec les vaelurs du dico
-        article = Article(
-            id=item["id"],
-            source=item["source"],
-            title=item["title"],
-            content=item["content"],
-            date=item["date"],
-            categories= item.get("categories", []),
-        
-        )
-
-        #on ajoute l'article au corpus
-        corpus.append(article)
-        
-    return corpus 
-
-
+    pass
 
 #r3
 def save_pickle(corpus: list[Article], output_file: Path) -> None:
@@ -144,44 +87,47 @@ def load_pickle(input_file: Path) -> list[Article]:
 
 
 
-
+#Mis à jour du main pour utiliser les fonctions de l'exercice 2.
 
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Tester la sérialisation des corpus")
-    parser.add_argument("input", type=Path, help="Fichier source")
-    parser.add_argument("output", type=Path, help="Fichier cible")
-    parser.add_argument("--from-format", choices=["json", "pickle", "xml"], required=True)#passer d'un format à un autre 
-    parser.add_argument("--to-format", choices=["json", "pickle", "xml"], required=True)#passer d'un format à un autre 
+    parser = argparse.ArgumentParser(description="Convertir des corpus entre formats (XML, JSON, Pickle)")
+    parser.add_argument("input", type=Path, help="Fichier d'entrée")
+    parser.add_argument("output", type=Path, help="Fichier de sortie")
+    parser.add_argument("--from-format", choices=["json", "pickle", "xml"], required=True, help="Format d'entrée")
+    parser.add_argument("--to-format", choices=["json", "pickle", "xml"], required=True, help="Format de sortie")
     args = parser.parse_args()
 
-    #charger le corpus
-    if args.from_format == "json":
-        corpus = load_json(args.input)
-    elif args.from_format == 'pickle':
-        corpus= load_pickle(args.input)
-    elif args.from_format == 'xml':
-        corpus = load_xml(args.input)
-    else:
-        raise ValueError(f'format inconnu: {args.from_format}')
-    
+    loaders = {
+        "json": load_json,
+        "xml": load_xml,
+        "pickle": load_pickle
+    }
 
-    #sauvegarder dans le nouveau format
-    if args.to_format == "json":
-        save_json(corpus, args.output)
-        print(f"Le corpus a bien été converti de {args.from_format} vers {args.to_format}")
-    elif args.to_format == 'pickle':
-        save_pickle(corpus, args.output)
-        print(f"Le corpus a bien été converti de {args.from_format} vers {args.to_format}")
-    elif args.to_format == 'xml':
-        save_xml(corpus, args.output)
-        print(f"Le corpus a bien été converti de {args.from_format} vers {args.to_format}")
-    else:
-        raise ValueError(f'format inconnu: {args.to_format}')
+    savers = {
+        "json": save_json,
+        "xml": save_xml,
+        "pickle": save_pickle
+    }
 
-    
-    
+    try:
+        
+        print(f"Chargement depuis {args.from_format}...", end=" ", flush=True)
+        if not args.input.exists():
+            raise FileNotFoundError(f"Le fichier {args.input} n'existe pas.")
+            
+        corpus = loaders[args.from_format](args.input)
+        print(f"({len(corpus)} articles)")
 
+        # 2. Saving phase
+        print(f"Sauvegarde en {args.to_format}...", end=" ", flush=True)
+        savers[args.to_format](corpus, args.output)
+        print(f"Conversion réussie: {args.input} → {args.output}")
 
-   
+    except FileNotFoundError as e:
+        print(f"Erreur de fichier: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Une erreur inattendue est survenue: {e}")
+        sys.exit(1)
