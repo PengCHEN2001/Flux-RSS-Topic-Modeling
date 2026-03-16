@@ -2,11 +2,12 @@
 # -*- coding: utf-8 -*-
 import sys
 import argparse
-import json
+import json 
 import pickle
 import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
+import json 
 
 @dataclass
 class Article:
@@ -63,6 +64,7 @@ def load_xml(input_file: Path) -> list[Article]:
         
     except ET.ParseError as e:
         raise ValueError(f"Fichier XML invalide: {e}")
+        
 #r2
 def save_json(corpus: list[Article], output_file: Path) -> None:
     pass
