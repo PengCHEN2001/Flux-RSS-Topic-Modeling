@@ -22,9 +22,13 @@ def save_pickle(corpus: list[Article], output_file: Path) -> None:
         pickle.dump(corpus, f)
 
 def load_pickle(input_file: Path) -> list[Article]:
-    #Charge et retourne une liste d'articles depuis un fichier pickle.
-    with open(input_file, 'rb') as f: #rb : read binary
-        return pickle.load(f)
+    try:#ajout gestion d'erreur
+        #Charge et retourne une liste d'articles depuis un fichier pickle.
+        with open(input_file, 'rb') as f: #rb : read binary
+            return pickle.load(f)
+    except Exception as e:#ajout gestion d'erreur
+        print(f"erreur lors du chargement de pickle: {e}")
+        return []
 
 
 #Mis à jour du main pour utiliser les fonctions de l'exercice 2.
