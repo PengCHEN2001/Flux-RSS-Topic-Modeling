@@ -1,3 +1,4 @@
 Corpus/
 venv/
 *:Zone.Identifier
+.DS_Store
