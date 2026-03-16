@@ -23,3 +23,9 @@ Pour l'Exercice 2, j'ai pris le rôle 3 (r3) sur ma propre branche. Ma mission :
 
 **Solutions**
 1. J'ai codé save_pickle (wb avec pickle.dump) et load_pickle (rb avec pickle.load) en m'assurant de bien gérer l'ouverture des fichiers en mode binaire.
+
+## Exercice 3
+
+###R3 - Anna Ushmarina
+
+J'ai dû relire le code de r1. Dans l'ensemble, le script était bon ; j'ai restructuré un peu la fonction `load_xml` pour placer la partie `except` après le reste du code afin de faciliter la lisibilité et la fonctionnalité. Tag ajouté.
