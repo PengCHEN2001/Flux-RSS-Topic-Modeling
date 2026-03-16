@@ -1,28 +1,72 @@
-# datastructures.py
-
-from dataclasses import dataclass, field
-import pickle
-from pathlib import Path
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Module datastructures - Gestion des Articles et sérialisation multi-formats
+Supporte: XML, JSON, Pickle
+"""
+import sys
 import argparse
+import json
+import pickle
+import xml.etree.ElementTree as ET
+from dataclasses import dataclass, field, asdict
+from pathlib import Path
 
 @dataclass
 class Article:
+    """Classe représentant un article RSS"""
     id: str
     source: str
     title: str
     content: str
     date: str
     categories: list[str] = field(default_factory=list)
-
 #r1
 def save_xml(corpus: list[Article], output_file: Path) -> None:
-    #proposera les fonctions de sauvegarde 
-    pass
+    """Sauvegarde une liste d'articles en fichier XML"""
+    output_file = Path(output_file)
+    # Créer le répertoire parent s'il n'existe pas
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    root = ET.Element("corpus")
+    for art in corpus:
+        item = ET.SubElement(root, "item")
+        for key, value in asdict(art).items():
+            child = ET.SubElement(item, key)
+            if isinstance(value, list):
+                child.text = "|".join(value)
+            else:
+                child.text = str(value)
+    tree = ET.ElementTree(root)
+    tree.write(output_file, encoding='utf-8', xml_declaration=True)
 
 def load_xml(input_file: Path) -> list[Article]:
-    #chargement en XML (on peut utiliser etree pour le créer)
-    pass
+    """Charge une liste d'articles depuis un fichier XML"""
+    input_file = Path(input_file)
 
+    if not input_file.exists():
+        raise FileNotFoundError(f"Fichier XML non trouvé: {input_file}")
+
+    try:
+        tree = ET.parse(input_file)
+        root = tree.getroot()
+
+        articles = []
+        for item in root.findall("item"):
+            cats_raw = item.findtext("categories", "")
+            cats_list = cats_raw.split("|") if cats_raw else []
+            articles.append(Article(
+                id=item.findtext("id", ""),
+                source=item.findtext("source", ""),
+                title=item.findtext("title", ""),
+                content=item.findtext("content", ""),
+                date=item.findtext("date", ""),
+                categories=[c for c in cats_list if c]
+            ))
+        return articles
+        
+    except ET.ParseError as e:
+        raise ValueError(f"Fichier XML invalide: {e}")
 #r2
 def save_json(corpus: list[Article], output_file: Path) -> None:
     pass
@@ -46,39 +90,48 @@ def load_pickle(input_file: Path) -> list[Article]:
         return []
 
 
+
 #Mis à jour du main pour utiliser les fonctions de l'exercice 2.
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Convertir un corpus d'un format à un autre.")
-    
-    # On utilise type=Path pour que argparse convertisse directement les strings en objets Path
-    parser.add_argument("input_file", type=Path, help="Fichier source")
-    parser.add_argument("output_file", type=Path, help="Fichier cible")
-    
-    parser.add_argument("--format-in", choices=["xml", "json", "pickle"], required=True, help="Format du fichier source")
-    parser.add_argument("--format-out", choices=["xml", "json", "pickle"], required=True, help="Format du fichier cible")
+    import argparse
 
+    parser = argparse.ArgumentParser(description="Convertir des corpus entre formats (XML, JSON, Pickle)")
+    parser.add_argument("input", type=Path, help="Fichier d'entrée")
+    parser.add_argument("output", type=Path, help="Fichier de sortie")
+    parser.add_argument("--from-format", choices=["json", "pickle", "xml"], required=True, help="Format d'entrée")
+    parser.add_argument("--to-format", choices=["json", "pickle", "xml"], required=True, help="Format de sortie")
     args = parser.parse_args()
 
-    # 1. Chargement du corpus
-    corpus = []
-    if args.format_in == "pickle":
-        corpus = load_pickle(args.input_file)
-    elif args.format_in == "json":
-        corpus = load_json(args.input_file)
-    elif args.format_in == "xml":
-        corpus = load_xml(args.input_file)
-    else:
-        raise ValueError(f'format inconnu: {args.format_in}')
+    loaders = {
+        "json": load_json,
+        "xml": load_xml,
+        "pickle": load_pickle
+    }
 
-    # 2. Sauvegarde du corpus
-    if args.format_out == "pickle":
-        save_pickle(corpus, args.output_file)
-    elif args.format_out == "json":
-        save_json(corpus, args.output_file)
-    elif args.format_out == "xml":
-        save_xml(corpus, args.output_file)
-    else:
-        raise ValueError(f'format inconnu: {args.format_out}')
+    savers = {
+        "json": save_json,
+        "xml": save_xml,
+        "pickle": save_pickle
+    }
 
-    print(f"Conversion terminée : {args.input_file} ({args.format_in}) -> {args.output_file} ({args.format_out})")
+    try:
+        
+        print(f"Chargement depuis {args.from_format}...", end=" ", flush=True)
+        if not args.input.exists():
+            raise FileNotFoundError(f"Le fichier {args.input} n'existe pas.")
+            
+        corpus = loaders[args.from_format](args.input)
+        print(f"({len(corpus)} articles)")
+
+        # 2. Saving phase
+        print(f"Sauvegarde en {args.to_format}...", end=" ", flush=True)
+        savers[args.to_format](corpus, args.output)
+        print(f"Conversion réussie: {args.input} → {args.output}")
+
+    except FileNotFoundError as e:
+        print(f"Erreur de fichier: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"Une erreur inattendue est survenue: {e}")
+        sys.exit(1)
