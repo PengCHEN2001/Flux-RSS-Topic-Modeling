@@ -76,3 +76,5 @@ Pour l'Exercice 2, j'ai pris le rôle 3 (r3) sur ma propre branche. Ma mission :
 ###R3 - Anna Ushmarina
 
 J'ai dû relire le code de r1. Dans l'ensemble, le script était bon ; j'ai restructuré un peu la fonction `load_xml` pour placer la partie `except` après le reste du code afin de faciliter la lisibilité et la fonctionnalité. Tag ajouté.
+
+Après j'ai fait un merge de la branche r1 vers la mienne. Il y avait pas de conflit grâce à une skelette du script proposée par Anne. J'ai pu tout combiner et faire un push toujours sur ma branche. 
