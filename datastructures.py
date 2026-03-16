@@ -49,22 +49,23 @@ def load_xml(input_file: Path) -> list[Article]:
     try:
         tree = ET.parse(input_file)
         root = tree.getroot()
+
+        articles = []
+        for item in root.findall("item"):
+            cats_raw = item.findtext("categories", "")
+            cats_list = cats_raw.split("|") if cats_raw else []
+            articles.append(Article(
+                id=item.findtext("id", ""),
+                source=item.findtext("source", ""),
+                title=item.findtext("title", ""),
+                content=item.findtext("content", ""),
+                date=item.findtext("date", ""),
+                categories=[c for c in cats_list if c]
+            ))
+        return articles
+        
     except ET.ParseError as e:
         raise ValueError(f"Fichier XML invalide: {e}")
-
-    articles = []
-    for item in root.findall("item"):
-        cats_raw = item.findtext("categories", "")
-        cats_list = cats_raw.split("|") if cats_raw else []
-        articles.append(Article(
-            id=item.findtext("id", ""),
-            source=item.findtext("source", ""),
-            title=item.findtext("title", ""),
-            content=item.findtext("content", ""),
-            date=item.findtext("date", ""),
-            categories=[c for c in cats_list if c]
-        ))
-    return articles
 
 def save_json(corpus: list[Article], output_file: Path) -> None:
     """Sauvegarde une liste d'articles en fichier JSON"""

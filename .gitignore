@@ -1,9 +1,5 @@
 .DS_Store
 Corpus/
 venv/
-<<<<<<< HEAD
 *:Zone.Identifier
-=======
-*:Zone.Identifier
-.DS_Store
->>>>>>> ae6dbfc9c4e44ef27a7ce47c3803b4df6d0f4ff0
+__pycache__/
