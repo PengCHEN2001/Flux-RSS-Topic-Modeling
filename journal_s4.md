@@ -64,6 +64,21 @@ Cette semaine le code hérité est propre et fonctionnel : nous avons pu passé 
 
 ## Exercice 2
 
+### R1 - Adriano Gallo
+
+Pour l'Exercice 2, j'ai pris le rôle 1 (r1) sur ma propre branche. Ma mission : définir la structure de données Article commune à toute l'équipe, puis implémenter la sauvegarde et le chargement du corpus au format XML.
+
+Difficultés rencontrées
+
+Le format XML ne supporte pas nativement les listes Python. Le champ categories de Article (une list[str]) devait être sérialisé d'une façon que load_xml puisse reconstruire fidèlement.
+
+Lors du chargement, il fallait reconstruire chaque objet Article depuis les nœuds XML sans perdre de données (valeurs vides, catégories manquantes).
+
+Solutions
+
+J'ai encodé les catégories en les joignant avec un séparateur ("|".join(value)) dans save_xml, et en les re-découpant avec split("|") dans load_xml, tout en filtrant les chaînes vides.
+
+J'ai utilisé asdict() de la bibliothèque dataclasses pour convertir automatiquement chaque Article en dictionnaire lors de la sérialisation, ce qui évite de hardcoder les noms de champs et rend le code robuste aux futures modifications de la structure.
 ### R2 - Anne-lx
 
 J'étais chargée de m'occuper de sauver et charger le corpus des articles au format JSON, tout d'abord j'ai crée un squelette pour le reste de mon groupe afin de rendre le merge plus simple.
@@ -86,6 +101,18 @@ Pour l'Exercice 2, j'ai pris le rôle 3 (r3) sur ma propre branche. Ma mission :
 1. J'ai codé save_pickle (wb avec pickle.dump) et load_pickle (rb avec pickle.load) en m'assurant de bien gérer l'ouverture des fichiers en mode binaire.
 
 ## Exercice 3
+### R1 - Adriano Gallo
+
+Lors de ma relecture du r2 de ma collègue, j'ai identifié plusieurs points à corriger.
+
+Le bug le plus critique était dans save_json : la variable était déclarée donnees mais utilisée avec accent données.append(...) plus loin, ce qui aurait causé un NameError à l'exécution. J'ai uniformisé le nom.
+
+J'ai aussi simplifié la construction du dictionnaire : au lieu de créer manuellement un dict champ par champ, j'ai utilisé asdict() de dataclasses, qui fait exactement la même chose de façon plus concise et robuste face aux futurs changements de structure.
+
+Dans load_json, j'ai ajouté une vérification FileNotFoundError avant l'ouverture du fichier, et remplacé les accès directs item["key"] par item.get("key", "") pour éviter un crash si un champ est absent.
+
+
+
 
 ### R2 - Anne-lx
 
