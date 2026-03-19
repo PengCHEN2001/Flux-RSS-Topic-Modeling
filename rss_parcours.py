@@ -1,145 +1,234 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
+from typing import Callable
+import os.path
+import sys
 import argparse
 from pathlib import Path
-from datetime import datetime
 from dateutil import parser as date_parser
-
 from rss_reader import read_rss
 from datastructures import Article
 
 
-def walk_glob(sample: str):
+def walk_os(sample: str) -> list[str]:
+    if os.path.isfile(sample):
+        if sample.endswith(".xml"):
+            return [sample]
+        else:
+            return []
 
+    files = sorted(os.path.join(sample, file) for file in os.listdir(sample))
+
+    if len(files) == 0:
+        return []
+
+    found_files = []
+    for file in files:
+        if os.path.isfile(file):
+            if file.endswith(".xml"):
+                found_files.append(file)
+        elif os.path.isdir(file):
+            found_files.extend(walk_os(file))
+
+    return found_files
+
+
+def walk_pathlib(sample: str) -> list[str]:
+    root = Path(sample)
+
+    def parcours(current: Path) -> list[str]:
+        result = []
+        if current.is_file() and current.suffix.lower() == ".xml":
+            result.append(str(current.resolve()))
+        elif current.is_dir():
+            for item in current.iterdir():
+                result.extend(parcours(item))
+        return result
+
+    return parcours(root)
+
+
+def walk_glob(sample: str) -> list[str]:
     path = Path(sample)
 
-    if path.is_file() and path.suffix == ".xml":
-        return [path]
+    if path.is_file() and path.suffix.lower() == ".xml":
+        return [str(path.resolve())]
 
     if path.is_dir():
-        return list(path.rglob("*.xml"))
+        return sorted(str(p.resolve()) for p in path.rglob("*.xml"))
 
     return []
 
 
-def filtre_date(article: Article, start=None, end=None):
-    if not article.date:
-        return True
-    try:
-        item_date = date_parser.parse(article.date).replace(tzinfo=None)
-
-        if start:
+def filtre_start_date(start: str) -> Callable[[Article], bool]:
+    def filtre(article: Article) -> bool:
+        if not article.date:
+            return True
+        try:
+            article_date = date_parser.parse(article.date).replace(tzinfo=None)
             start_date = date_parser.parse(start).replace(tzinfo=None)
-            if item_date < start_date:
-                return False
-
-        if end:
-            end_date = date_parser.parse(end).replace(tzinfo=None)
-            if item_date > end_date:
-                return False
-
-    except Exception:
-        return True
-
-    return True
-
-
-def filtre_source(article: Article, sources):
-    for s in sources:
-        if s.lower() in article.source.lower():
+            return article_date >= start_date
+        except Exception:
             return True
 
-    return False
+    return filtre
 
 
-def filtre_categorie(article: Article, categories):
-    article_categories = [c.lower() for c in article.categories]
+def filtre_end_date(end: str) -> Callable[[Article], bool]:
+    def filtre(article: Article) -> bool:
+        if not article.date:
+            return True
+        try:
+            article_date = date_parser.parse(article.date).replace(tzinfo=None)
+            end_date = date_parser.parse(end).replace(tzinfo=None)
+            return article_date <= end_date
+        except Exception:
+            return True
 
-    for c in categories:
-        if c.lower() not in article_categories:
-            return False
-
-    return True
+    return filtre
 
 
-def dedoublonnage(articles):
+def filtre_par_source(sources: list[str]) -> Callable[[Article], bool]:
+    def filtre(article: Article) -> bool:
+        for source in sources:
+            if source.lower() in article.source.lower():
+                return True
+        return False
 
+    return filtre
+
+
+def filtre_par_categories(categories: list[str]) -> Callable[[Article], bool]:
+    def filtre(article: Article) -> bool:
+        article_categories = [c.lower() for c in article.categories]
+        for category in categories:
+            if category.lower() not in article_categories:
+                return False
+        return True
+
+    return filtre
+
+
+def apply_filters(
+    articles: list[Article], filtres: list[Callable[[Article], bool]]
+) -> list[Article]:
+    result = []
+    for article in articles:
+        if all(f(article) for f in filtres):
+            result.append(article)
+    return result
+
+
+def dedoublonnage(articles: list[Article]) -> list[Article]:
     seen = set()
     unique = []
 
-    for a in articles:
-        if a.id not in seen:
-            seen.add(a.id)
-            unique.append(a)
+    for article in articles:
+        if article.id not in seen:
+            seen.add(article.id)
+            unique.append(article)
 
     return unique
 
 
-def main():
+def filtrage(articles: list[Article], args: argparse.Namespace) -> list[Article]:
+    filtres = []
 
+    if args.start:
+        filtres.append(filtre_start_date(args.start))
+    if args.end:
+        filtres.append(filtre_end_date(args.end))
+    if args.categories:
+        filtres.append(filtre_par_categories(args.categories))
+    if args.source:
+        filtres.append(filtre_par_source(args.source))
+
+    return apply_filters(articles, filtres)
+
+
+def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Parcourir un dossier RSS"
+        description="Lire un fichier XML RSS ou parcourir un dossier de fichiers XML RSS."
     )
 
     parser.add_argument(
-        "path",
-        help="Fichier ou dossier contenant des RSS"
+        "sample",
+        help="Fichier XML ou dossier contenant des fichiers XML RSS."
+    )
+
+    parser.add_argument(
+        "-w",
+        "--directory-walker",
+        choices=("os", "pathlib", "glob"),
+        default="glob",
+        help="Méthode utilisée pour parcourir les fichiers XML."
     )
 
     parser.add_argument(
         "-m",
         "--method",
-        choices=("etree", "feedparser"),
+        choices=("re", "etree", "feedparser"),
         default="feedparser",
+        help="Méthode de lecture à utiliser."
     )
 
-    parser.add_argument("-s", "--source", nargs="+")
-    parser.add_argument("-c", "--categories", nargs="+")
-    parser.add_argument("--start")
-    parser.add_argument("--end")
+    parser.add_argument(
+        "-s",
+        "--source",
+        nargs="+",
+        help="Filtrer par une ou plusieurs sources."
+    )
+
+    parser.add_argument(
+        "-c",
+        "--categories",
+        nargs="+",
+        help="Filtrer par une ou plusieurs catégories."
+    )
+
+    parser.add_argument(
+        "--start",
+        help="Date de début pour le filtrage."
+    )
+
+    parser.add_argument(
+        "--end",
+        help="Date de fin pour le filtrage."
+    )
 
     args = parser.parse_args()
 
-    files = walk_glob(args.path)
+    name2walker = {
+        "os": walk_os,
+        "pathlib": walk_pathlib,
+        "glob": walk_glob,
+    }
+
+    walker = name2walker[args.directory_walker]
+    files = walker(args.sample)
 
     if not files:
-        print("Aucun fichier XML trouvé")
-        return
+        print("Aucun fichier XML trouvé.")
+        sys.exit(1)
 
-    articles = []
+    articles: list[Article] = []
 
-    for f in files:
-        articles.extend(read_rss(args.method, str(f)))
+    for rss_feed in files:
+        articles.extend(read_rss(args.method, rss_feed))
 
     articles = dedoublonnage(articles)
+    articles = filtrage(articles, args)
 
-    filtres = []
+    print(f"Articles trouvés : {len(articles)}\n")
 
-    if args.source:
-        filtres.append(lambda a: filtre_source(a, args.source))
-
-    if args.categories:
-        filtres.append(lambda a: filtre_categorie(a, args.categories))
-
-    if args.start or args.end:
-        filtres.append(lambda a: filtre_date(a, args.start, args.end))
-
-    filtered = []
-
-    for a in articles:
-        ok = True
-        for f in filtres:
-            if not f(a):
-                ok = False
-                break
-        if ok:
-            filtered.append(a)
-
-    print(f"Articles trouvés : {len(filtered)}\n")
-
-    for a in filtered:
-        print(a)
+    for article in articles:
+        print(f"id : {article.id}")
+        print(f"source : {article.source}")
+        print(f"title : {article.title}")
+        print(f"description : {article.content}")
+        print(f"date : {article.date}")
+        print(f"categories : {article.categories}")
         print()
 
 
