@@ -394,103 +394,24 @@ def filtre_cat(article: Article, categories: list[str]) -> bool | None:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Lire un fichier xml (flux RSS) avec une méthode à choisir",
-        epilog="Exemple d'utilisation avec filtre : python3 rss_reader.py -w glob --methode feedparser --corpus ./corpus/ -c spiritueux vins",
-    )
-
+    parser = argparse.ArgumentParser(description="Lire un fichier RSS")
     parser.add_argument(
-        "-w", "--directory-walker", choices=("os", "pathlib", "glob"), default="glob"
+        "filepath", help="Filepath to be analyzed, either a single file or a directory"
     )
-
     parser.add_argument(
-        "-m",
-        "--methode",
-        choices=("re", "etree", "feedparser"),
-        help="Méthode à utiliser : re, etree ou feedparser",
-        default="feedparser",
-    )
-
-    parser.add_argument(
-        "--corpus",
-        dest="fichier_xml",
+        "-r",
+        "--reader",
         required=True,
-        help="Chemin vers un fichier XML ou un dossier contenant des XML",
+        choices=("re", "etree", "feedparser"),
+        default="etree",
     )
-
-    parser.add_argument(
-        "-s",
-        "--source",
-        nargs="+",
-        help="Filtrer par une ou plusieurs sources (ex: BFMTV Figaro)",
-    )
-
-    parser.add_argument(
-        "-c",
-        "--categories",
-        nargs="+",  # pour récupérer une liste de mots
-        help="Filtrer par une ou plusieurs catégories.",
-    )
-
-    # r1 : filtrage par date
-    parser.add_argument("--start", help="Date de début pour le filtrage (AAAA-MM-JJ)")
-    parser.add_argument("--end", help="Date de fin pour le filtrage (AAAA-MM-JJ)")
 
     args = parser.parse_args()
-
-    # Sélection du walker
-    if args.directory_walker == "os":
-        files = walk_os(args.fichier_xml)
-    elif args.directory_walker == "pathlib":
-        files = walk_pathlib(args.fichier_xml)
-    elif args.directory_walker == "glob":
-        files = walk_glob(args.fichier_xml)
-    else:
-        raise KeyError(f"Unknown walker: {args.directory_walker}")
-
-    if not files:
-        print("Aucun fichier XML trouvé.")
-        sys.exit(1)
-
-    articles = []
-
-    for file in files:
-        articles.extend(read_rss(args.methode, file))
-
-    print(f"\nNombre total d'articles extraits : {len(articles)}")
-
-    # Dédoublonnage
-    articles = filtrage_repetition(articles)
-
-    print(f"\nNombre total d'articles uniques : {len(articles)}\n")
-    
-    filtres_actifs = []
-
-    if args.source:
-        sources = [s.lower() for s in args.source]
-        filtres_actifs.append(lambda item: filtrage_source(item, sources))
-
-    if args.start or args.end:
-        filtres_actifs.append(lambda item: filtre_date(item, args.start, args.end))
-
-    if args.categories:
-        # Fonction lambda ne prenant que l'article en argument (qui sera fourni à filtrage())
-        filtre_r3 = lambda article: filtre_cat(article, args.categories)
-        filtres_actifs.append(filtre_r3)
-
-    # Applique tous les filtres
-    articles = filtrage(filtres_actifs, articles)
-
-    # Affichage des résultats
-    for article in articles:
-        print(f"id: {article.id}")
-        print(f"source: {article.source}")
-        print(f"title: {article.title}")
-        print(f"content: {article.content}")
-        print(f"date: {article.date}")
-        print(f"categories: {article.categories}")
-        print()
-
+    parsed_fichier= read_rss(args.reader, args.filepath )
+    for article in parsed_fichier :
+        for k, v in vars(article).items() :
+            print(f"{k} : {v}")
+        print("\n" + "-" * 40)
 
 if __name__ == "__main__":
     main()
