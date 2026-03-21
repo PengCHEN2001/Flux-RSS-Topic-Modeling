@@ -8,25 +8,16 @@ import argparse
 from pathlib import Path
 from dateutil import parser as date_parser
 from rss_reader import read_rss
-from datastructures import (
-    Article,
-    load_json,
-    load_pickle,
-    load_xml,
-    save_json,
-    save_pickle,
-    save_xml,
-)
+from datastructures import  Article,load_json, load_pickle, load_xml, save_json, save_pickle, save_xml
 
-
-def walk_os(sample: str) -> list[str]:
-    if os.path.isfile(sample):
-        if sample.endswith(".xml"):
-            return [sample]
+def walk_os(corpus: str) -> list[str]:
+    if os.path.isfile(corpus):
+        if corpus.endswith(".xml"):
+            return [corpus]
         else:
             return []
 
-    files = sorted(os.path.join(sample, file) for file in os.listdir(sample))
+    files = sorted(os.path.join(corpus, file) for file in os.listdir(corpus))
 
     if len(files) == 0:
         return []
@@ -42,8 +33,8 @@ def walk_os(sample: str) -> list[str]:
     return found_files
 
 
-def walk_pathlib(sample: str) -> list[str]:
-    root = Path(sample)
+def walk_pathlib(corpus: str) -> list[str]:
+    root = Path(corpus)
 
     def parcours(current: Path) -> list[str]:
         result = []
@@ -57,8 +48,8 @@ def walk_pathlib(sample: str) -> list[str]:
     return parcours(root)
 
 
-def walk_glob(sample: str) -> list[str]:
-    path = Path(sample)
+def walk_glob(corpus: str) -> list[str]:
+    path = Path(corpus)
 
     if path.is_file() and path.suffix.lower() == ".xml":
         return [str(path.resolve())]
@@ -181,7 +172,8 @@ def main() -> None:
     )
 
     parser.add_argument(
-        "sample", help="Fichier XML ou dossier contenant des fichiers XML RSS."
+        "-c",
+        "--corpus", help="Fichier XML ou dossier contenant des fichiers XML RSS."
     )
 
     parser.add_argument(
@@ -205,7 +197,7 @@ def main() -> None:
     )
 
     parser.add_argument(
-        "-c", "--categories", nargs="+", help="Filtrer par une ou plusieurs catégories."
+        "-cat", "--categories", nargs="+", help="Filtrer par une ou plusieurs catégories."
     )
 
     parser.add_argument("--start", help="Date de début pour le filtrage.")
@@ -231,11 +223,6 @@ def main() -> None:
 
     args = parser.parse_args()
 
-    if (args.input_file is None) != (args.input_format is None):
-        parser.error("--input-file et --input-format doivent etre utilisés ensemble.")
-
-    if (args.output_file is None) != (args.output_format is None):
-        parser.error("--output-file et --output-format doivent etre utilisés ensemble.")
 
     # Chargement des articles depuis un corpus sérialisé ou depuis les fichiers XML
     if args.input_file:
@@ -247,7 +234,7 @@ def main() -> None:
             "glob": walk_glob,
         }
         walker = name2walker[args.directory_walker]
-        corpus = walker(args.sample)
+        corpus = walker(args.corpus)
 
         if not corpus:
             print("Aucun fichier XML trouvé.")
