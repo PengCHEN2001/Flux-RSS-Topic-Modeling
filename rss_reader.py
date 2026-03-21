@@ -5,9 +5,9 @@
 import os.path
 from pathlib import Path
 from datastructures import Article
-import re  
-import xml.etree.ElementTree as ET  
-import feedparser  
+import re
+import xml.etree.ElementTree as ET
+import feedparser
 import argparse  # Pour appeler notre fonction.
 import sys
 from datetime import datetime
