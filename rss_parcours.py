@@ -8,7 +8,15 @@ import argparse
 from pathlib import Path
 from dateutil import parser as date_parser
 from rss_reader import read_rss
-from datastructures import Article
+from datastructures import (
+    Article,
+    load_json,
+    load_pickle,
+    load_xml,
+    save_json,
+    save_pickle,
+    save_xml,
+)
 
 
 def walk_os(sample: str) -> list[str]:
@@ -147,14 +155,33 @@ def filtrage(articles: list[Article], args: argparse.Namespace) -> list[Article]
     return apply_filters(articles, filtres)
 
 
+def charger_corpus_serialise(input_format: str, input_file: Path) -> list[Article]:
+    fonctions_load = {
+        "xml": load_xml,
+        "json": load_json,
+        "pickle": load_pickle,
+    }
+    return fonctions_load[input_format](input_file)
+
+
+def sauvegarder_corpus_serialise(
+    corpus: list[Article], output_format: str, output_file: Path
+) -> None:
+    fonctions_save = {
+        "xml": save_xml,
+        "json": save_json,
+        "pickle": save_pickle,
+    }
+    fonctions_save[output_format](corpus, output_file)
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Lire un fichier XML RSS ou parcourir un dossier de fichiers XML RSS."
     )
 
     parser.add_argument(
-        "sample",
-        help="Fichier XML ou dossier contenant des fichiers XML RSS."
+        "sample", help="Fichier XML ou dossier contenant des fichiers XML RSS."
     )
 
     parser.add_argument(
@@ -162,7 +189,7 @@ def main() -> None:
         "--directory-walker",
         choices=("os", "pathlib", "glob"),
         default="glob",
-        help="Méthode utilisée pour parcourir les fichiers XML."
+        help="Méthode utilisée pour parcourir les fichiers XML.",
     )
 
     parser.add_argument(
@@ -170,52 +197,68 @@ def main() -> None:
         "--method",
         choices=("re", "etree", "feedparser"),
         default="feedparser",
-        help="Méthode de lecture à utiliser."
+        help="Méthode de lecture à utiliser.",
     )
 
     parser.add_argument(
-        "-s",
-        "--source",
-        nargs="+",
-        help="Filtrer par une ou plusieurs sources."
+        "-s", "--source", nargs="+", help="Filtrer par une ou plusieurs sources."
     )
 
     parser.add_argument(
-        "-c",
-        "--categories",
-        nargs="+",
-        help="Filtrer par une ou plusieurs catégories."
+        "-c", "--categories", nargs="+", help="Filtrer par une ou plusieurs catégories."
     )
 
-    parser.add_argument(
-        "--start",
-        help="Date de début pour le filtrage."
-    )
+    parser.add_argument("--start", help="Date de début pour le filtrage.")
+
+    parser.add_argument("--end", help="Date de fin pour le filtrage.")
 
     parser.add_argument(
-        "--end",
-        help="Date de fin pour le filtrage."
+        "--input-file", type=Path, help="Chemin vers un corpus deja sérialisé"
+    )
+    parser.add_argument(
+        "--input-format",
+        choices=["xml", "json", "pickle"],
+        help="Format du corpus sérialisé en entree",
+    )
+    parser.add_argument(
+        "--output-file", type=Path, help="Chemin de sortie pour sauvegarder le corpus"
+    )
+    parser.add_argument(
+        "--output-format",
+        choices=["xml", "json", "pickle"],
+        help="Format du corpus sérialisé en sortie",
     )
 
     args = parser.parse_args()
 
-    name2walker = {
-        "os": walk_os,
-        "pathlib": walk_pathlib,
-        "glob": walk_glob,
-    }
+    if (args.input_file is None) != (args.input_format is None):
+        parser.error("--input-file et --input-format doivent etre utilisés ensemble.")
 
-    walker = name2walker[args.directory_walker]
-    files = walker(args.sample)
+    if (args.output_file is None) != (args.output_format is None):
+        parser.error("--output-file et --output-format doivent etre utilisés ensemble.")
 
-    if not files:
-        print("Aucun fichier XML trouvé.")
-        sys.exit(1)
+    # Chargement des articles depuis un corpus sérialisé ou depuis les fichiers XML
+    if args.input_file:
+        articles = charger_corpus_serialise(args.input_format, args.input_file)
+    else:
+        name2walker = {
+            "os": walk_os,
+            "pathlib": walk_pathlib,
+            "glob": walk_glob,
+        }
+        walker = name2walker[args.directory_walker]
+        corpus = walker(args.sample)
 
-    articles: list[Article] = []
+        if not corpus:
+            print("Aucun fichier XML trouvé.")
+            sys.exit(1)
 
-    for rss_feed in files:
-        articles.extend(read_rss(args.method, rss_feed))
+        articles = []
+        for rss_feed in corpus:
+            articles.extend(read_rss(args.method, rss_feed))
+
+    if args.output_file:
+        sauvegarder_corpus_serialise(articles, args.output_format, args.output_file)
 
     articles = dedoublonnage(articles)
     articles = filtrage(articles, args)
