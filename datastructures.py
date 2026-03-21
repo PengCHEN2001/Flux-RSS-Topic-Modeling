@@ -21,6 +21,13 @@ class Article:
     content: str
     date: str
     categories: list[str] = field(default_factory=list)
+    tokens: list = field(default_factory=list)
+
+@dataclass
+class Token:
+    forme: str
+    lemme: str | None
+    pos: str | None
 #r1
 def save_xml(corpus: list[Article], output_file: Path) -> None:
     """Sauvegarde une liste d'articles en fichier XML"""
@@ -120,10 +127,19 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser(description="Convertir des corpus entre formats (XML, JSON, Pickle)")
-    parser.add_argument("input", type=Path, help="Fichier d'entrée")
-    parser.add_argument("output", type=Path, help="Fichier de sortie")
-    parser.add_argument("--from-format", choices=["json", "pickle", "xml"], required=True, help="Format d'entrée")
-    parser.add_argument("--to-format", choices=["json", "pickle", "xml"], required=True, help="Format de sortie")
+    parser.add_argument("input",
+                        type=Path,
+                        help="Fichier d'entrée")
+    parser.add_argument("output",
+                        type=Path,
+                        help="Fichier de sortie")
+    parser.add_argument("--from-format",
+                        choices=["json", "pickle", "xml"],
+                        required=True,
+                        help="Format d'entrée")
+    parser.add_argument("--to-format",
+                        choices=["json", "pickle", "xml"],
+                        required=True, help="Format de sortie")
     args = parser.parse_args()
 
     loaders = {
