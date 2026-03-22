@@ -4,24 +4,57 @@
 Module datastructures - Gestion des Articles et sérialisation multi-formats
 Supporte: XML, JSON, Pickle
 """
+
 import sys
 import argparse
 import json
 import pickle
 import xml.etree.ElementTree as ET
+import spacy
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
+
+nlp = spacy.load("fr_core_news_md")
+
+
+@dataclass
+class Token:
+    """dataclass d’interface commune pour stocker les résultats des différents analyseurs"""
+
+    forme: str
+    lemme: str
+    pos: str
+
 
 @dataclass
 class Article:
     """Classe représentant un article RSS"""
+
     id: str
     source: str
     title: str
     content: str
     date: str
     categories: list[str] = field(default_factory=list)
-#r1
+    tokens: list[Token] = field(default_factory=list)
+
+
+def article_analyzer(article: Article) -> Article:
+    """retourne l'Article enrichi avec le résultat de l’analyse"""
+    doc = nlp(article.content)
+    for token in doc:
+        article.tokens.append(
+            Token(
+                forme=token.shape_,
+                lemme=token.lemma_,
+                pos=token.pos_,
+            )
+        )
+
+    return article
+
+
+# r1
 def save_xml(corpus: list[Article], output_file: Path) -> None:
     """Sauvegarde une liste d'articles en fichier XML"""
     output_file = Path(output_file)
@@ -38,7 +71,8 @@ def save_xml(corpus: list[Article], output_file: Path) -> None:
             else:
                 child.text = str(value)
     tree = ET.ElementTree(root)
-    tree.write(output_file, encoding='utf-8', xml_declaration=True)
+    tree.write(output_file, encoding="utf-8", xml_declaration=True)
+
 
 def load_xml(input_file: Path) -> list[Article]:
     """Charge une liste d'articles depuis un fichier XML"""
@@ -55,26 +89,31 @@ def load_xml(input_file: Path) -> list[Article]:
         for item in root.findall("item"):
             cats_raw = item.findtext("categories", "")
             cats_list = cats_raw.split("|") if cats_raw else []
-            articles.append(Article(
-                id=item.findtext("id", ""),
-                source=item.findtext("source", ""),
-                title=item.findtext("title", ""),
-                content=item.findtext("content", ""),
-                date=item.findtext("date", ""),
-                categories=[c for c in cats_list if c]
-            ))
+            articles.append(
+                Article(
+                    id=item.findtext("id", ""),
+                    source=item.findtext("source", ""),
+                    title=item.findtext("title", ""),
+                    content=item.findtext("content", ""),
+                    date=item.findtext("date", ""),
+                    categories=[c for c in cats_list if c],
+                )
+            )
         return articles
-        
+
     except ET.ParseError as e:
         raise ValueError(f"Fichier XML invalide: {e}")
-#r2
+
+
+# r2
 def save_json(corpus: list[Article], output_file: Path) -> None:
     """Sauvegarde une liste d'articles en fichier JSON"""
     output_file = Path(output_file)
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_file, 'w', encoding='utf-8') as f:
+    with open(output_file, "w", encoding="utf-8") as f:
         json.dump([asdict(art) for art in corpus], f, indent=4, ensure_ascii=False)
+
 
 def load_json(input_file: Path) -> list[Article]:
     """Charge une liste d'articles depuis un fichier JSON"""
@@ -84,20 +123,23 @@ def load_json(input_file: Path) -> list[Article]:
         raise FileNotFoundError(f"Fichier JSON non trouvé: {input_file}")
 
     try:
-        with open(input_file, 'r', encoding='utf-8') as f:
+        with open(input_file, "r", encoding="utf-8") as f:
             data = json.load(f)
             return [Article(**art) for art in data]
     except json.JSONDecodeError as e:
         raise ValueError(f"Fichier JSON invalide: {e}")
 
-#r3
+
+# r3
 def save_pickle(corpus: list[Article], output_file: Path) -> None:
     """Sauvegarde une liste d'articles en fichier Pickle"""
+
     output_file = Path(output_file)
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
-    with open(output_file, 'wb') as f:
+    with open(output_file, "wb") as f:
         pickle.dump(corpus, f)
+
 
 def load_pickle(input_file: Path) -> list[Article]:
     """Charge une liste d'articles depuis un fichier Pickle"""
@@ -107,43 +149,47 @@ def load_pickle(input_file: Path) -> list[Article]:
         raise FileNotFoundError(f"Fichier Pickle non trouvé: {input_file}")
 
     try:
-        with open(input_file, 'rb') as f:
-            return pickle.load(f)
+        with open(input_file, "rb") as f:
+            corpus = pickle.load(f)
+            return corpus
+
     except (pickle.UnpicklingError, EOFError) as e:
         raise ValueError(f"Fichier Pickle invalide: {e}")
 
 
-
-#Mis à jour du main pour utiliser les fonctions de l'exercice 2.
+# Mis à jour du main pour utiliser les fonctions de l'exercice 2.
 
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Convertir des corpus entre formats (XML, JSON, Pickle)")
+    parser = argparse.ArgumentParser(
+        description="Convertir des corpus entre formats (XML, JSON, Pickle)"
+    )
     parser.add_argument("input", type=Path, help="Fichier d'entrée")
     parser.add_argument("output", type=Path, help="Fichier de sortie")
-    parser.add_argument("--from-format", choices=["json", "pickle", "xml"], required=True, help="Format d'entrée")
-    parser.add_argument("--to-format", choices=["json", "pickle", "xml"], required=True, help="Format de sortie")
+    parser.add_argument(
+        "--from-format",
+        choices=["json", "pickle", "xml"],
+        required=True,
+        help="Format d'entrée",
+    )
+    parser.add_argument(
+        "--to-format",
+        choices=["json", "pickle", "xml"],
+        required=True,
+        help="Format de sortie",
+    )
     args = parser.parse_args()
 
-    loaders = {
-        "json": load_json,
-        "xml": load_xml,
-        "pickle": load_pickle
-    }
+    loaders = {"json": load_json, "xml": load_xml, "pickle": load_pickle}
 
-    savers = {
-        "json": save_json,
-        "xml": save_xml,
-        "pickle": save_pickle
-    }
+    savers = {"json": save_json, "xml": save_xml, "pickle": save_pickle}
 
     try:
-        
         print(f"Chargement depuis {args.from_format}...", end=" ", flush=True)
         if not args.input.exists():
             raise FileNotFoundError(f"Le fichier {args.input} n'existe pas.")
-            
+
         corpus = loaders[args.from_format](args.input)
         print(f"({len(corpus)} articles)")
 
