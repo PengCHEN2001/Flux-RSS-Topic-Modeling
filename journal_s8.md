@@ -1,20 +1,99 @@
-# Goupe16 : Salma, Catalina, Lydia
+# Corrections apportées aux scripts 
 
-Récuperation  du code du groupe précedent.
-le script ne fonctionnait pas, il y a eu plusieurs corrections qui ont ete entrpris.
+Nous avons créé une branche correction-s8 à partir de main pour y effectuer nos modifications.
 
+1. Alignement du type **Article** dans tout la pipeline
 
-## Corection_s8: 
+Le problème ce que une partie du code retournait des dictionnaires, alors que le reste du script manipulait des objets **Article** avec accès par attribut : 
+```
+a.id
+a.source
+a.date
+a.categories
+```
+Cela provocait des erreurs ``` AttributeError: 'dict' object has no attribute 'id' ```
+
+> Nous avons donc uniformisé le comportement des fonctions de lecture pour qu'elles retournent toutes des objets Article.
+
+2. Correction du champs de la dataclass : **content** au lieu de **description**
+
+Le problème était que dans datastrcutures.py, le dataclass etait définie :
+```
+@dataclass
+class Article:
+    id: str
+    source: str
+    title: str
+    content: str
+    date: str
+    categories: list[str]
+```
+
+Mais une partie du code construisait les objets avec : ``` Article(..., description=...) ```
+
+> Nous avons donc remplacé partout description= par content=
+
+3. Réparation du module_etree
+
+Le problème dans ce fichier, était que plusieurs variables utilisées dans la création de l'artcile n'étaient jamais définies : 
+- dataid
+- title
+- pubdate
+
+Le code ne pouvait donc pas s’exécuter.
+
+> Nous avons ajouté la récupération de ces valeurs : 
+```
+dataid = get_text(item, "guid") or get_text(item, "link")
+title = get_text(item, "title")
+pubdate = get_text(item, "pubDate")
+if not pubdate:
+    pubdate = get_text(item, "lastpublished")
+```
+
+4. Adaptaction des focntions de filtrage aux objets Article et correction de l'affichage final
+
+Le problème portait sir les fonstions de filtrage qui manipulaient les articles comme des dictionnaires.
+
+> Nous avons remplacé ces accès par des attributs : 
+```
+article.source
+article.id
+article.categories
+item.date
+```
+
+Ensuite nous avons remplacé : for key, value in article.items() par un affichage explicite des attributs : 
+
+```
+print(f"id: {article.id}")
+print(f"source: {article.source}")
+print(f"title: {article.title}")
+print(f"content: {article.content}")
+print(f"date: {article.date}")
+print(f"categories: {article.categories}")
+```
+
+5. Corection_s8: 
+
 Rss_reader : il a ete modifié de sorte à ce que l'utilisateur saisisse un fichier et non pas une arborescence. 
 Et dans le def  main nous avons retirer les autres args.parse car cela ne nous interesse pas pour le moment .
 Rss_parcours nous avons modifier 'sample ' en corpus afin que ce soit plus comprehensible , et nous avons modifier cet argument afin qu'il soit optionnel, comme ca l'utilisateur a le choix entre saisir un dossier ou directement un inputfil qui contient le chemin vers un fichier.
 
 
+## s8 - Enrichissements du corpus avec des analyseurs morphosyntaxiques. 
 
 
 
+> Spacy 
 
-## R3 Salma :
+
+> Stanza
+
+
+> trankit 
+
+R3 Salma :
 
 
 type de commande lancé pour tester les script : 
