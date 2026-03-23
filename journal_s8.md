@@ -87,6 +87,46 @@ Rss_parcours nous avons modifier 'sample ' en corpus afin que ce soit plus compr
 
 > Spacy 
 
+## Exercice 1 — Prise en main des outils
+
+Pour ce projet, j'ai travaillé avec **spaCy**.
+
+## Exercice 2 — Script de démonstration indépendant
+
+En m'inspirant de la documentation, j'ai rédigé le script `demo_spacy.py`. Ce script charge la bibliothèque et traite une phrase issue du corpus à l'aide du modèle français `fr_core_news_md`.
+
+Comme demandé dans l'exercice suivant, ce script m'a permis de me familiariser avec les principales fonctionnalités de l'outil : la tokenisation du texte, ainsi que l'affichage, pour chaque mot, de son lemme, de sa forme et de sa catégorie morphosyntaxique (*POS*).
+
+## Exercice 3 — Intégration au projet
+
+Dans cet exercice, la principale difficulté a d'abord été de déterminer la bonne stratégie d'intégration. La consigne « retourne enrichi » m'a posé problème. J'ai hésité entre deux approches :
+
+- ajouter un champ `tokens: list[Token]` à la dataclass `Article` ;
+- créer une dataclass `Token` distincte, avec un champ `id` permettant de la relier à l'article.
+
+J'ai finalement retenu la première solution.
+
+### Étapes réalisées
+
+- Création d'une dataclass `Token` pour stocker les analyses associées à chaque token.
+- Ajout, dans `Article`, du champ `tokens: list[Token] = field(default_factory=list)`.
+- Création d'une fonction `article_analyzer` dans `datastructures.py` :
+  - chargement d'un modèle **spaCy** ;
+  - application du modèle à la description de l'article ;
+  - parcours des tokens pour stocker les résultats de l'analyse dans des objets `Token`.
+- Création du fichier `analyzers.py` :
+  - import des fonctions définies dans `datastructures.py` ;
+  - définition de la fonction `analyze_corpus`, qui parcourt le corpus et applique `article_analyzer` à chaque article ;
+  - ajout d'une fonction principale (`main`).
+- Désérialisation des `Article`, enrichissement des données, puis sérialisation.
+- Ajout d'un `return` dans la fonction de désérialisation, car lors de l'utilisation dans `analyzers.py`, la variable `corpus` valait `None`.
+
+### Exemple de ligne de commande
+
+```bash
+python3 analyzers.py --from-format pickle corpus.pkl corpus.pkl
+```
+
 
 > Stanza
 
