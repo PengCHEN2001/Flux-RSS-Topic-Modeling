@@ -45,7 +45,7 @@ def article_analyzer(article: Article) -> Article:
     for token in doc:
         article.tokens.append(
             Token(
-                forme=token.shape_,
+                forme=token.text,
                 lemme=token.lemma_,
                 pos=token.pos_,
             )
