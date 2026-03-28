@@ -18,7 +18,8 @@ from trankit import Pipeline
 
 
 #spacy
-
+def analyzer_spacy(article: Article) -> Article:
+    raise NotImplementedError("Analyseur spaCy non implémenté")
 
 
 
@@ -27,6 +28,8 @@ from trankit import Pipeline
 
 #stanza
 
+def analyzer_stanza(article: Article) -> Article:
+    raise NotImplementedError("Analyseur stanza non implémenté")
 
 
 
@@ -70,11 +73,21 @@ def main():
     parser.add_argument("--to-format",
                         choices=["json", "pickle", "xml"],
                         required=True)
+    # Ajout arg --analyzer
+    parser.add_argument("--analyzer",
+                        choices=["spacy", "stanza", "trankit"],
+                        required=True)
     args = parser.parse_args()
 
     # 1. Chargement fichier json xml pickle
     loaders = {"json": load_json, "xml": load_xml, "pickle": load_pickle}
     savers  = {"json": save_json, "xml": save_xml, "pickle": save_pickle}
+    # Ajout dic analysers
+    analyzers = {
+        "spacy": analyzer_spacy,
+        "stanza": analyzer_stanza,
+        "trankit": analyzer_trankit
+    }
 
     print(f"Chargement depuis {args.input}...")
     corpus = loaders[args.from_format](args.input)
@@ -82,7 +95,7 @@ def main():
 
     # 2. Analyse morpho syntaxique
     print("Analyse en cours...")
-    corpus_analyse = [analyzer_trankit(article) for article in corpus]
+    corpus_analyse = [analyzers[args.analyzer](article) for article in corpus]
     print("Analyse terminée.")
 
     # 3. Sauvegarde dans un nouveau fichier

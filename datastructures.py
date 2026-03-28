@@ -13,6 +13,12 @@ from dataclasses import dataclass, field, asdict
 from pathlib import Path
 
 @dataclass
+class Token:
+    forme: str
+    lemme: str | None
+    pos: str | None
+
+@dataclass
 class Article:
     """Classe représentant un article RSS"""
     id: str
@@ -21,29 +27,33 @@ class Article:
     content: str
     date: str
     categories: list[str] = field(default_factory=list)
-    tokens: list = field(default_factory=list)
+    # pour garder une liste plate
+    tokens: list[Token] = field(default_factory=list)
 
-@dataclass
-class Token:
-    forme: str
-    lemme: str | None
-    pos: str | None
 #r1
 def save_xml(corpus: list[Article], output_file: Path) -> None:
     """Sauvegarde une liste d'articles en fichier XML"""
     output_file = Path(output_file)
-    # Créer le répertoire parent s'il n'existe pas
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
     root = ET.Element("corpus")
     for art in corpus:
         item = ET.SubElement(root, "item")
-        for key, value in asdict(art).items():
-            child = ET.SubElement(item, key)
-            if isinstance(value, list):
-                child.text = "|".join(value)
-            else:
-                child.text = str(value)
+
+        ET.SubElement(item, "id").text = art.id
+        ET.SubElement(item, "source").text = art.source
+        ET.SubElement(item, "title").text = art.title
+        ET.SubElement(item, "content").text = art.content
+        ET.SubElement(item, "date").text = art.date
+        ET.SubElement(item, "categories").text = "|".join(art.categories)
+
+        tokens_elem = ET.SubElement(item, "tokens")
+        for tok in art.tokens:
+            tok_elem = ET.SubElement(tokens_elem, "token")
+            ET.SubElement(tok_elem, "forme").text = tok.forme or ""
+            ET.SubElement(tok_elem, "lemme").text = tok.lemme or ""
+            ET.SubElement(tok_elem, "pos").text = tok.pos or ""
+
     tree = ET.ElementTree(root)
     tree.write(output_file, encoding='utf-8', xml_declaration=True)
 
@@ -61,19 +71,35 @@ def load_xml(input_file: Path) -> list[Article]:
         articles = []
         for item in root.findall("item"):
             cats_raw = item.findtext("categories", "")
-            cats_list = cats_raw.split("|") if cats_raw else []
-            articles.append(Article(
-                id=item.findtext("id", ""),
-                source=item.findtext("source", ""),
-                title=item.findtext("title", ""),
-                content=item.findtext("content", ""),
-                date=item.findtext("date", ""),
-                categories=[c for c in cats_list if c]
-            ))
+            categories = cats_raw.split("|") if cats_raw else []
+
+            tokens = []
+            tokens_elem = item.find("tokens")
+            if tokens_elem is not None:
+                for tok_elem in tokens_elem.findall("token"):
+                    tokens.append(
+                        Token(
+                            forme=tok_elem.findtext("forme", ""),
+                            lemme=tok_elem.findtext("lemme", ""),
+                            pos=tok_elem.findtext("pos", "")
+                        )
+                    )
+
+            articles.append(
+                Article(
+                    id=item.findtext("id", ""),
+                    source=item.findtext("source", ""),
+                    title=item.findtext("title", ""),
+                    content=item.findtext("content", ""),
+                    date=item.findtext("date", ""),
+                    categories=[c for c in categories if c],
+                    tokens=tokens
+                )
+            )
         return articles
-        
     except ET.ParseError as e:
         raise ValueError(f"Fichier XML invalide: {e}")
+
 #r2
 def save_json(corpus: list[Article], output_file: Path) -> None:
     """Sauvegarde une liste d'articles en fichier JSON"""
@@ -93,7 +119,22 @@ def load_json(input_file: Path) -> list[Article]:
     try:
         with open(input_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            return [Article(**art) for art in data]
+
+        articles = []
+        for art in data:
+            tokens = [Token(**tok) for tok in art.get("tokens", [])]
+            articles.append(
+                Article(
+                    id=art["id"],
+                    source=art["source"],
+                    title=art["title"],
+                    content=art["content"],
+                    date=art["date"],
+                    categories=art.get("categories", []),
+                    tokens=tokens
+                )
+            )
+        return articles
     except json.JSONDecodeError as e:
         raise ValueError(f"Fichier JSON invalide: {e}")
 
@@ -118,7 +159,6 @@ def load_pickle(input_file: Path) -> list[Article]:
             return pickle.load(f)
     except (pickle.UnpicklingError, EOFError) as e:
         raise ValueError(f"Fichier Pickle invalide: {e}")
-
 
 
 #Mis à jour du main pour utiliser les fonctions de l'exercice 2.
@@ -155,15 +195,13 @@ if __name__ == "__main__":
     }
 
     try:
-        
         print(f"Chargement depuis {args.from_format}...", end=" ", flush=True)
         if not args.input.exists():
             raise FileNotFoundError(f"Le fichier {args.input} n'existe pas.")
-            
+
         corpus = loaders[args.from_format](args.input)
         print(f"({len(corpus)} articles)")
 
-        # 2. Saving phase
         print(f"Sauvegarde en {args.to_format}...", end=" ", flush=True)
         savers[args.to_format](corpus, args.output)
         print(f"Conversion réussie: {args.input} → {args.output}")
