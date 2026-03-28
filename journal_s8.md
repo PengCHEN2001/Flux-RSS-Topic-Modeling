@@ -129,6 +129,38 @@ python3 analyzers.py --from-format pickle corpus.pkl corpus.pkl
 
 
 > Stanza
+#  Lydia (Rôle 2 : Stanza)
+
+## 1. 
+
+###  Développement de l'analyseur Stanza
+* **Objectif** : Enrichir le texte brut avec des informations morphosyntaxiques.
+* **Réalisation** : Création de `analyzers.py` intégrant le pipeline `stanza.Pipeline(lang='fr', processors='tokenize,lemma,pos')`.
+* **Résultat** : Chaque article contient désormais une liste de `tokens` avec sa forme, son lemme et son étiquette UPOS.
+
+###  Harmonisation et préparation du Merge
+* **Objectif** : Rendre le code compatible avec celui des autres membres du groupe (SpaCy/Trankit).
+* **Actions** : 
+    * Changement des noms de variables de l'anglais (`form`, `lemma`) vers le français (`forme`, `lemme`) pour s'aligner sur la structure de groupe.
+    * Correction des erreurs de configuration liées au renommage (conservation de `processor='lemma'` pour Stanza en interne).
+
+## 2. Rapport de Relecture (Peer-Review) de la branche SpaCy
+
+J'ai effectué la relecture de l'analyseur SpaCy. Voici les modifications et observations effectuées pour valider la branche :
+
+* **Correction du bug `token.shape_`** : L'analyseur SpaCy utilisait initialement `shape_` (qui donne la structure abstraite du mot, ex: `Xxxx`). J'ai effectué la modification vers `token.text` pour récupérer le vrai mot.
+* **Mise en conformité des Dataclasses** : j'ai harmoniser  harmonisé les champs de la classe `Token` dans ma partie stanza  pour éviter les conflits lors de la fusion sur `main`.
+* **Validation** : Après ces corrections, le fichier de sortie de SpaCy est identique en structure à celui de Stanza, ce qui permet un traitement uniforme par la suite.
+
+## 3. Commandes pour tester le projet
+Utiliser des guillemets pour les chemins avec espaces 
+**Note technique** : Stanza est extrêmement précis pour le français mais très gourmand en ressources. Pour les prochains traitements à grande échelle, il est recommandé de vérifier la disponibilité d'un GPU (`use_gpu=True`) ou de segmenter le corpus en fichiers de 500 articles maximum pour éviter les saturations mémoire. ici j'ai utiliser un seul fichier comme demander dans la feuille d'exercice 
+
+   python3 rss_parcours.py -c "../2026/02/10/mar.10:26/Blast -- articles.xml" --output-file corpus_pour_stanza.json --output-format json
+
+pour lancer l'analyse stanza :
+   python3 analyzers.py corpus_pour_stanza.json corpus_final.json --format json
+
 
 
 > trankit 
