@@ -32,11 +32,11 @@ def analyze_with_stanza(article: Article, nlp) -> Article:
         for word in sentence.words:
             # Création d'une instance de la dataclass Token commune au groupe
             # word.text  -> Forme originale du mot (ex: "mangeait")
-            # word.lemma -> Forme canonique (ex: "manger")
+            # word.lemme -> Forme canonique (ex: "manger")
             # word.upos  -> Catégorie grammaticale universelle (ex: "VERB")
             new_token = Token(
-                form=word.text,
-                lemma=word.lemma,
+                forme=word.text,
+                lemme=word.lemma,
                 pos=word.upos
             )
             enriched_tokens.append(new_token)

@@ -15,8 +15,8 @@ from pathlib import Path
 @dataclass
 class Token:
     """Classe représentant un token enrichi (Ex 3)"""
-    form: str
-    lemma: str
+    forme: str
+    lemme: str
     pos: str
 
 @dataclass
@@ -48,8 +48,8 @@ def save_xml(corpus: list[Article], output_file: Path) -> None:
                 # Structure spécifique pour les tokens en XML
                 for t in value:
                     t_elem = ET.SubElement(child, "token")
-                    t_elem.set("form", t["form"])
-                    t_elem.set("lemma", t["lemma"])
+                    t_elem.set("forme", t["forme"])
+                    t_elem.set("lemme", t["lemme"])
                     t_elem.set("pos", t["pos"])
             elif isinstance(value, list):
                 child.text = "|".join(value)
@@ -81,8 +81,8 @@ def load_xml(input_file: Path) -> list[Article]:
             if tokens_node is not None:
                 for t_node in tokens_node.findall("token"):
                     tokens_list.append(Token(
-                        form=t_node.get("form", ""),
-                        lemma=t_node.get("lemma", ""),
+                        forme=t_node.get("forme", ""),
+                        lemme=t_node.get("lemme", ""),
                         pos=t_node.get("pos", "")
                     ))
 
