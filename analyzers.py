@@ -50,7 +50,7 @@ def analyzer_trankit(article: Article) -> Article:
                 pos   = token.get('upos'),
             )
             tokens_phrase.append(tok)
-        article.tokens.append(tokens_phrase)
+        article.tokens.extend(tokens_phrase)
     return article
 
 
