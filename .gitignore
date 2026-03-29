@@ -3,3 +3,7 @@ Corpus/
 venv/
 *:Zone.Identifier
 __pycache__/
+.venv-stanza/
+.venv/
+__pycache__/
+.DS_Store
