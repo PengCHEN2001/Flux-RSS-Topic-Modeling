@@ -12,12 +12,14 @@ import xml.etree.ElementTree as ET
 from dataclasses import dataclass, field, asdict
 from pathlib import Path
 
+
 @dataclass
 class Token:
     """Classe représentant un token enrichi (Ex 3)"""
     forme: str
-    lemme: str
-    pos: str
+    lemme: str | None
+    pos: str | None
+
 
 @dataclass
 class Article:
@@ -28,10 +30,10 @@ class Article:
     content: str
     date: str
     categories: list[str] = field(default_factory=list)
-    # Champ ajouté pour l'Exercice 3 : liste de tokens (vide par défaut)
     tokens: list[Token] = field(default_factory=list)
 
-#r1
+
+# r1
 def save_xml(corpus: list[Article], output_file: Path) -> None:
     """Sauvegarde une liste d'articles en fichier XML (mis à jour Ex 3)"""
     output_file = Path(output_file)
@@ -40,24 +42,24 @@ def save_xml(corpus: list[Article], output_file: Path) -> None:
     root = ET.Element("corpus")
     for art in corpus:
         item = ET.SubElement(root, "item")
-        # Transformation en dictionnaire pour itérer
-        art_dict = asdict(art)
-        for key, value in art_dict.items():
-            child = ET.SubElement(item, key)
-            if key == "tokens" and value:
-                # Structure spécifique pour les tokens en XML
-                for t in value:
-                    t_elem = ET.SubElement(child, "token")
-                    t_elem.set("forme", t["forme"])
-                    t_elem.set("lemme", t["lemme"])
-                    t_elem.set("pos", t["pos"])
-            elif isinstance(value, list):
-                child.text = "|".join(value)
-            else:
-                child.text = str(value)
+
+        ET.SubElement(item, "id").text = art.id
+        ET.SubElement(item, "source").text = art.source
+        ET.SubElement(item, "title").text = art.title
+        ET.SubElement(item, "content").text = art.content
+        ET.SubElement(item, "date").text = art.date
+        ET.SubElement(item, "categories").text = "|".join(art.categories)
+
+        tokens_elem = ET.SubElement(item, "tokens")
+        for tok in art.tokens:
+            tok_elem = ET.SubElement(tokens_elem, "token")
+            ET.SubElement(tok_elem, "forme").text = tok.forme or ""
+            ET.SubElement(tok_elem, "lemme").text = tok.lemme or ""
+            ET.SubElement(tok_elem, "pos").text = tok.pos or ""
 
     tree = ET.ElementTree(root)
     tree.write(output_file, encoding='utf-8', xml_declaration=True)
+
 
 def load_xml(input_file: Path) -> list[Article]:
     """Charge une liste d'articles depuis un fichier XML (mis à jour Ex 3)"""
@@ -73,34 +75,38 @@ def load_xml(input_file: Path) -> list[Article]:
         articles = []
         for item in root.findall("item"):
             cats_raw = item.findtext("categories", "")
-            cats_list = cats_raw.split("|") if cats_raw else []
+            categories = cats_raw.split("|") if cats_raw else []
 
-            # Reconstruction des tokens
-            tokens_list = []
-            tokens_node = item.find("tokens")
-            if tokens_node is not None:
-                for t_node in tokens_node.findall("token"):
-                    tokens_list.append(Token(
-                        forme=t_node.get("forme", ""),
-                        lemme=t_node.get("lemme", ""),
-                        pos=t_node.get("pos", "")
-                    ))
+            tokens = []
+            tokens_elem = item.find("tokens")
+            if tokens_elem is not None:
+                for tok_elem in tokens_elem.findall("token"):
+                    tokens.append(
+                        Token(
+                            forme=tok_elem.findtext("forme", ""),
+                            lemme=tok_elem.findtext("lemme", ""),
+                            pos=tok_elem.findtext("pos", "")
+                        )
+                    )
 
-            articles.append(Article(
-                id=item.findtext("id", ""),
-                source=item.findtext("source", ""),
-                title=item.findtext("title", ""),
-                content=item.findtext("content", ""),
-                date=item.findtext("date", ""),
-                categories=[c for c in cats_list if c],
-                tokens=tokens_list
-            ))
+            articles.append(
+                Article(
+                    id=item.findtext("id", ""),
+                    source=item.findtext("source", ""),
+                    title=item.findtext("title", ""),
+                    content=item.findtext("content", ""),
+                    date=item.findtext("date", ""),
+                    categories=[c for c in categories if c],
+                    tokens=tokens
+                )
+            )
         return articles
 
     except ET.ParseError as e:
         raise ValueError(f"Fichier XML invalide: {e}")
 
-#r2
+
+# r2
 def save_json(corpus: list[Article], output_file: Path) -> None:
     """Sauvegarde une liste d'articles en fichier JSON"""
     output_file = Path(output_file)
@@ -108,6 +114,7 @@ def save_json(corpus: list[Article], output_file: Path) -> None:
 
     with open(output_file, 'w', encoding='utf-8') as f:
         json.dump([asdict(art) for art in corpus], f, indent=4, ensure_ascii=False)
+
 
 def load_json(input_file: Path) -> list[Article]:
     """Charge une liste d'articles depuis un fichier JSON (mis à jour Ex 3)"""
@@ -119,17 +126,28 @@ def load_json(input_file: Path) -> list[Article]:
     try:
         with open(input_file, 'r', encoding='utf-8') as f:
             data = json.load(f)
-            articles = []
-            for art_data in data:
-                # Gérer la conversion des dictionnaires de tokens en objets Token
-                if "tokens" in art_data:
-                    art_data["tokens"] = [Token(**t) for t in art_data["tokens"]]
-                articles.append(Article(**art_data))
-            return articles
+
+        articles = []
+        for art_data in data:
+            tokens = [Token(**t) for t in art_data.get("tokens", [])]
+            articles.append(
+                Article(
+                    id=art_data["id"],
+                    source=art_data["source"],
+                    title=art_data["title"],
+                    content=art_data["content"],
+                    date=art_data["date"],
+                    categories=art_data.get("categories", []),
+                    tokens=tokens
+                )
+            )
+        return articles
+
     except json.JSONDecodeError as e:
         raise ValueError(f"Fichier JSON invalide: {e}")
 
-#r3
+
+# r3
 def save_pickle(corpus: list[Article], output_file: Path) -> None:
     """Sauvegarde une liste d'articles en fichier Pickle"""
     output_file = Path(output_file)
@@ -137,6 +155,7 @@ def save_pickle(corpus: list[Article], output_file: Path) -> None:
 
     with open(output_file, 'wb') as f:
         pickle.dump(corpus, f)
+
 
 def load_pickle(input_file: Path) -> list[Article]:
     """Charge une liste d'articles depuis un fichier Pickle"""
@@ -152,13 +171,22 @@ def load_pickle(input_file: Path) -> list[Article]:
         raise ValueError(f"Fichier Pickle invalide: {e}")
 
 
-# Main reste identique pour la conversion de formats.
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Convertir des corpus entre formats (XML, JSON, Pickle)")
-    parser.add_argument("input", type=Path, help="Fichier d'entrée")
-    parser.add_argument("output", type=Path, help="Fichier de sortie")
-    parser.add_argument("--from-format", choices=["json", "pickle", "xml"], required=True, help="Format d'entrée")
-    parser.add_argument("--to-format", choices=["json", "pickle", "xml"], required=True, help="Format de sortie")
+    parser.add_argument("input",
+                        type=Path,
+                        help="Fichier d'entrée")
+    parser.add_argument("output",
+                        type=Path,
+                        help="Fichier de sortie")
+    parser.add_argument("--from-format",
+                        choices=["json", "pickle", "xml"],
+                        required=True,
+                        help="Format d'entrée")
+    parser.add_argument("--to-format",
+                        choices=["json", "pickle", "xml"],
+                        required=True,
+                        help="Format de sortie")
     args = parser.parse_args()
 
     loaders = {"json": load_json, "xml": load_xml, "pickle": load_pickle}

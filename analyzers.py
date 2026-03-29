@@ -4,36 +4,37 @@
 import argparse
 import sys
 from pathlib import Path
+
 import stanza
 
-# On importe les structures de données définies ensemble dans datastructures.py [cite: 42, 43]
-from datastructures import Article, Token, load_json, save_json, load_xml, save_xml, load_pickle, save_pickle
+from datastructures import Token, Article, load_json, load_pickle, load_xml, save_json, save_pickle, save_xml
+
+
+#spacy
+def analyzer_spacy(article: Article) -> Article:
+    raise NotImplementedError("Analyseur spaCy non implémenté")
+
+
+#stanza
+_stanza_pipeline = None
 
 def get_stanza_pipeline():
-    #Initialise et charge en mémoire le modèle linguistique Stanza
-    return stanza.Pipeline(lang='fr', processors='tokenize,lemma,pos', use_gpu=False)
+    global _stanza_pipeline
+    if _stanza_pipeline is None:
+        _stanza_pipeline = stanza.Pipeline(lang='fr', processors='tokenize,lemma,pos', use_gpu=False)
+    return _stanza_pipeline
 
-def analyze_with_stanza(article: Article, nlp) -> Article:
-    #Prend un objet Article, analyse son texte brut, et remplit sa liste de tokens
-    #Arguments :article (Article) : L'objet contenant le texte à analyser. nlp : Le pipeline Stanza déjà chargé (pour éviter de le recharger 100 fois).
-    #Retourne :Article : L'objet enrichi avec une liste d'objets Token[cite: 40].
-    # Sécurité : si l'article est vide, on ne fait rien
+def analyzer_stanza(article: Article) -> Article:
     if not article.content:
         return article
 
-    # Lancement de l'analyse Stanza sur le contenu de l'article
+    nlp = get_stanza_pipeline()
     doc = nlp(article.content)
 
-    # Liste temporaire pour stocker nos objets Token unifiés
     enriched_tokens = []
 
-    # Stanza organise le résultat en phrases (sentences), puis en mots (words)
     for sentence in doc.sentences:
         for word in sentence.words:
-            # Création d'une instance de la dataclass Token commune au groupe
-            # word.text  -> Forme originale du mot (ex: "mangeait")
-            # word.lemme -> Forme canonique (ex: "manger")
-            # word.upos  -> Catégorie grammaticale universelle (ex: "VERB")
             new_token = Token(
                 forme=word.text,
                 lemme=word.lemma,
@@ -41,49 +42,78 @@ def analyze_with_stanza(article: Article, nlp) -> Article:
             )
             enriched_tokens.append(new_token)
 
-    # On injecte la liste de tokens dans l'attribut prévu de l'article
     article.tokens = enriched_tokens
     return article
 
+
+#trankit
+_trankit_pipeline = None
+
+def get_trankit_pipeline():
+    global _trankit_pipeline
+    if _trankit_pipeline is None:
+        from trankit import Pipeline
+        _trankit_pipeline = Pipeline('french')
+    return _trankit_pipeline
+
+def analyzer_trankit(article: Article) -> Article:
+    if not article.content:
+        return article
+
+    p = get_trankit_pipeline()
+    article.tokens = []
+
+    for sentence in p(article.content)['sentences']:
+        for token in sentence['tokens']:
+            tok = Token(
+                forme=token.get('text'),
+                lemme=token.get('lemma'),
+                pos=token.get('upos'),
+            )
+            article.tokens.append(tok)
+    return article
+
+
+#main
 def main():
-
-    #Usage : python analyzers.py input.json output.json --format json
-
-    parser = argparse.ArgumentParser(description="Enrichissement morphosyntaxique avec Stanza (Rôle 2)")
-    parser.add_argument("input", type=Path, help="Chemin du fichier corpus d'entrée")
-    parser.add_argument("output", type=Path, help="Chemin du fichier de sortie enrichi")
-    parser.add_argument("--format", choices=["json", "xml", "pickle"], default="json",
-                        help="Format de sérialisation utilisé")
-
+    parser = argparse.ArgumentParser(description="Analyse d'un corpus")
+    parser.add_argument("input",
+                        type=Path,
+                        help="Fichier corpus en entrée")
+    parser.add_argument("output",
+                        type=Path,
+                        help="Fichier corpus en sortie")
+    parser.add_argument("--from-format",
+                        choices=["json", "pickle", "xml"],
+                        required=True)
+    parser.add_argument("--to-format",
+                        choices=["json", "pickle", "xml"],
+                        required=True)
+    parser.add_argument("--analyzer",
+                        choices=["spacy", "stanza", "trankit"],
+                        required=True)
     args = parser.parse_args()
 
-    # Mapping des fonctions de chargement/sauvegarde de datastructures.py [cite: 45]
     loaders = {"json": load_json, "xml": load_xml, "pickle": load_pickle}
-    savers = {"json": save_json, "xml": save_xml, "pickle": save_pickle}
+    savers  = {"json": save_json, "xml": save_xml, "pickle": save_pickle}
+    analyzers = {
+        "spacy": analyzer_spacy,
+        "stanza": analyzer_stanza,
+        "trankit": analyzer_trankit
+    }
 
-    try:
-        # 1. Chargement des données brutes
-        print(f"[*] Lecture du fichier {args.input}...")
-        corpus = loaders[args.format](args.input)
+    print(f"Chargement depuis {args.input}...")
+    corpus = loaders[args.from_format](args.input)
+    print(f"{len(corpus)} articles chargés.")
 
-        # 2. Préparation de l'analyseur
-        print("[*] Chargement du modèle Stanza (Français)...")
-        nlp = get_stanza_pipeline()
+    print("Analyse en cours...")
+    corpus_analyse = [analyzers[args.analyzer](article) for article in corpus]
+    print("Analyse terminée.")
 
-        # 3. Boucle de traitement sur tous les articles du corpus [cite: 44]
-        print(f"[*] Analyse morphosyntaxique de {len(corpus)} articles en cours...")
-        for article in corpus:
-            analyze_with_stanza(article, nlp)
+    print(f"Sauvegarde vers {args.output}...")
+    savers[args.to_format](corpus_analyse, args.output)
+    print("Fait !")
 
-        # 4. Exportation du corpus enrichi (incluant les nouveaux tokens) [cite: 8]
-        print(f"[*] Sauvegarde des résultats vers {args.output}...")
-        savers[args.format](corpus, args.output)
-        print("[+] Succès : Le corpus a été enrichi et sauvegardé.")
-
-    except Exception as e:
-        # Gestion d'erreur basique pour le débogage
-        print(f"[!] Erreur critique : {e}")
-        sys.exit(1)
 
 if __name__ == "__main__":
     main()
