@@ -4,16 +4,14 @@
 import argparse
 import sys
 from pathlib import Path
-
 import stanza
-
-from datastructures import Token, Article, load_json, load_pickle, load_xml, save_json, save_pickle, save_xml
+from datastructures import Token, Article, article_analyzer, load_json, load_pickle, load_xml, save_json, save_pickle, save_xml
 
 
 #spacy
-def analyzer_spacy(article: Article) -> Article:
-    raise NotImplementedError("Analyseur spaCy non implémenté")
 
+def analyzer_spacy(article: Article) -> Article:
+    return article_analyzer(article)
 
 #stanza
 _stanza_pipeline = None
