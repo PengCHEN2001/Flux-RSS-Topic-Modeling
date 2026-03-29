@@ -1,15 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-# IMPORT
+
 
 import os.path
 from pathlib import Path
-
-import re  # r1
-import xml.etree.ElementTree as ET  # r2
-import feedparser  # r3
+from datastructures import Article
+import re
+import xml.etree.ElementTree as ET
+import feedparser
 import argparse  # Pour appeler notre fonction.
-from bs4 import BeautifulSoup  # Pour nettoyer les balises dans un texte.
 import sys
 from datetime import datetime
 from dateutil import parser as date_parser
@@ -100,6 +99,7 @@ def clean_cdata(text):
         if not text:
             return ""
         return text.strip()
+    return ""
 
 
 def extract_tag(content, tag):
@@ -123,11 +123,10 @@ def extract_tag(content, tag):
 
 
 def extract_items(xml_content, source_name):
-    """Extrait les articles du flux RSS et retourne une liste de dictionnaires."""
+    """Extrait les articles du flux RSS et retourne une liste d'objets Article."""
 
-    # Extraire les catégories dans channel :
     all_channels = re.findall(
-        r"<(?:\w+:)?channel\b[^>]*>(.*?)</(?:\w+:)?channel>",  # Chercher toutes les channels (s'il y en a plusieurs).
+        r"<(?:\w+:)?channel\b[^>]*>(.*?)</(?:\w+:)?channel>",
         xml_content,
         re.DOTALL,
     )
@@ -139,53 +138,47 @@ def extract_items(xml_content, source_name):
         flags=re.DOTALL,
     )
     channel_categories = re.findall(
-        r"<(?:\w+:)?category\b[^>]*>(.*?)</(?:\w+:)?category>",  # Trouver les catégories dans channel.
+        r"<(?:\w+:)?category\b[^>]*>(.*?)</(?:\w+:)?category>",
         channel_propre,
         re.DOTALL,
     )
     channel_categories = [clean_cdata(categ.strip()) for categ in channel_categories]
 
-    # On récupère tous les blocs <item>...</item>
-    # Le namespace éventuel est aussi accepté
     items = re.findall(
-        r"<(?:\w+:)?item\b[^>]*>(.*?)</(?:\w+:)?item>", xml_content, re.DOTALL
+        r"<(?:\w+:)?item\b[^>]*>(.*?)</(?:\w+:)?item>",
+        xml_content,
+        re.DOTALL,
     )
 
-    # Liste qui contiendra les métadonnées de chaque article
     metadonnees = []
 
-    # On traite chaque article séparément
     for item in items:
-        article = {}
-
-        # id : on prend le guid s’il existe, sinon le lien
         guid = extract_tag(item, "guid")
         link = extract_tag(item, "link")
-        article["id"] = guid if guid else link
+        article_id = guid if guid else link
 
-        # source : nom du fichier XML
-        article["source"] = source_name
+        title = extract_tag(item, "title")
+        content = extract_tag(item, "description")
+        date = extract_tag(item, "pubDate")
 
-        # titre de l’article
-        article["title"] = extract_tag(item, "title")
-
-        # contenu (description du RSS)
-        article["content"] = extract_tag(item, "description")
-
-        # date de publication
-        article["date"] = extract_tag(item, "pubDate")
-
-        # Extraire les catégories dans items :
         item_categories = re.findall(
-            r"<(?:\w+:)?(?:category)\b[^>]*>(.*?)</(?:\w+:)?(?:category)>",
+            r"<(?:\w+:)?category\b[^>]*>(.*?)</(?:\w+:)?category>",
             item,
             re.DOTALL,
         )
         item_categories = [clean_cdata(categ.strip()) for categ in item_categories]
 
-        article["categories"] = sorted(channel_categories + item_categories)
+        categories = sorted(set(channel_categories + item_categories))
 
-        # On ajoute l’article à la liste finale
+        article = Article(
+            id=article_id,
+            source=source_name,
+            title=title,
+            content=content,
+            date=date,
+            categories=categories,
+        )
+
         metadonnees.append(article)
 
     return metadonnees
@@ -200,9 +193,7 @@ def get_text(parent, tag):
     return ""
 
 
-# Traite UN fichier RSS XML Retourne une liste de dictionnaires (articles)
-
-
+# Traite UN fichier RSS XML Retourne une liste d'articles
 def module_etree(chemin_fichier):
     articles = []
 
@@ -215,30 +206,38 @@ def module_etree(chemin_fichier):
     root = tree.getroot()
 
     channel = root.find(".//channel")
-    channel_categories = [
-        cat.text.strip() for cat in channel.findall("category") if cat.text
-    ]
     if channel is None:
         return articles
 
+    channel_categories = [
+        cat.text.strip() for cat in channel.findall("category") if cat.text
+    ]
+
     for item in channel.findall("item"):
 
+        dataid = get_text(item, "guid") or get_text(item, "link")
+        title = get_text(item, "title")
         raw_content = get_text(item, "description")
-        clean_content = re.sub(r"<[^>]+>", "", raw_content)
+        clean_content = clean_cdata(raw_content)
+        pubdate = get_text(item, "pubDate")
+        if not pubdate:
+            pubdate = get_text(item, "lastpublished")
 
-        article = {
-            "id": get_text(item, "guid") or get_text(item, "link"),
-            "source": os.path.basename(chemin_fichier),
-            "title": get_text(item, "title"),
-            "content": clean_content,
-            "date": get_text(item, "pubDate"),
-            "categories": sorted(
-                set(
-                    channel_categories
-                    + [cat.text.strip() for cat in item.findall("category") if cat.text]
-                )
-            ),
-        }
+        categories = sorted(
+            set(
+                channel_categories
+                + [cat.text.strip() for cat in item.findall("category") if cat.text]
+            )
+        )
+
+        article = Article(
+            id=dataid,
+            source=os.path.basename(chemin_fichier),
+            title=title,
+            content=clean_content,
+            date=pubdate,
+            categories=categories,
+        )
 
         articles.append(article)
 
@@ -258,69 +257,37 @@ On retrouvera les métadonnées suivantes :
 """
 
 
-def metadonnees(
-    fichier_xml,
-):  # Pour le "fichier_xml" : sur le terminal, soit il faut taper le chemin jusqu'au fichier, soit taper le nom du fichier xml.
-    """
-    Récupérer les métadonnées de chaque article du flux.
-    Arguments : le dossier contenant les fichiers xml.
-    Return : cette fonction retourne une liste des métadonnées de chaque article dont l'id, la source, le contenu, la date et les catégories.
-    """
-    feed = feedparser.parse(fichier_xml)  # Pour parser un flux RSS (ou atom).
-    metadonnees_articles = (
-        []
-    )  # Liste vide pour les métadonnées qu'on va récupérer dans chaque article grâce aux fichiers xml.
+def metadonnees(fichier_xml):
+    feed = feedparser.parse(fichier_xml)
+    metadonnees_articles = []
 
-    # Extraire toutes les métadonnées pour chaque fichier xml :
     for entry in feed.entries:
-
-        # Pour les catégories :
-        # 1) Récupérer les "catégorie(s)" dans les fichiers xml :
-        channel_categories = [tag.get("term") for tag in feed.feed.get("tags", [])]
-        item_categories = [tag.get("term") for tag in entry.get("tags", [])]
+        channel_categories = [
+            tag.get("term") for tag in feed.feed.get("tags", []) if tag.get("term")
+        ]
+        item_categories = [
+            tag.get("term") for tag in entry.get("tags", []) if tag.get("term")
+        ]
         categories = sorted(set(channel_categories + item_categories))
-        """
-        #2) Conditions pour l'extraction des catégories et du résultats qu'il retourne (soit une ou plusieurs catégories, soit rien).
-        if channel_categories and item_categories : #Afficher les catégories pour les fichiers xml "Figaro".
-            categories = item_categories + channel_categories
-        else :
-            if channel_categories and not item_categories : #Afficher les catégories pour les fichiers xml "Flux RSS".
-                categories = channel_categories
-            else :
-                if not channel_categories and item_categories : #Afficher les catégories pour les fichiers xml "Bast" et "ELucid".
-                    categories = item_categories
-                if not channel_categories and not item_categories : #Afficher les catégories pour les fichiers xml "Libération".
-                    categories = []
-       """
-        # Pour la description - nettoyage de la description :
+
         description = (
             entry.get("description")
             or entry.get("summary")
             or "No description or summary"
         )
-        if (
-            description
-        ):  # Condition pour supprimer les balises présentes dans la description de certains fichiers xml. On veut garder que du texte. Module utilisé "BeautifulSoup" :
-            nettoyer_description = BeautifulSoup(description, "html.parser")
-            description_texte = nettoyer_description.get_text(" ", strip=True)
 
-        # Extraire les metadonnées qu'on cherche pour chaque article et les ajouter aux metadonnees_articles :
-        metadonnees_articles.append(
-            {
-                "id": (
-                    entry.get("id") or entry.get("link") or "No id"
-                ),  # Si la donnée n'apparaît pas dans le fichier xml, alors on notera "No id" pour absence d'identifiant.
-                "source": fichier_xml,
-                "title": entry.get("title", "No title"),
-                "content": description_texte,
-                "date": (
-                    entry.get("published")
-                    or entry.get("updated")
-                    or "No published or updated"
-                ),
-                "categories": categories,
-            }
+        description_texte = clean_cdata(description)
+
+        article = Article(
+            id=entry.get("id") or entry.get("link") or "No id",
+            source=fichier_xml,
+            title=entry.get("title", "No title"),
+            content=description_texte,
+            date=entry.get("published") or entry.get("updated") or "No published or updated",
+            categories=categories,
         )
+
+        metadonnees_articles.append(article)
 
     return metadonnees_articles
 
@@ -345,7 +312,7 @@ def read_rss(method, path):
 
 
 # -------------Semaine 3
-def filtrage(filtres: list, articles: list[dict]) -> list[dict]:
+def filtrage(filtres: list, articles: list[Article]) -> list[Article]:
     """applique successivement les filtres et renvoie la liste filtrée (crée une nouvelle liste sans modifier l'ancienne)"""
     filtered_articles = []
     for article in articles:
@@ -362,18 +329,18 @@ def filtrage(filtres: list, articles: list[dict]) -> list[dict]:
 
 # r1 : filtrage par date
 def filtre_date(
-    item: dict, date_start_str: str | None = None, date_end_str: str | None = None
+    item: Article, date_start_str: str | None = None, date_end_str: str | None = None
 ) -> bool:
     """fonction de filtrage en fonction de la date
     Les dates doivent être parsées avec le module 'datetime'"""
 
     # Si l'article n'a pas de date, on le garde par défaut pour ne pas perdre d'information
-    if not item.get("date"):
+    if not item.date:
         return True
 
     try:
         # Conversion de la date de l'article et suppression du fuseau horaire pour permettre une comparaison simple avec les entrées utilisateur
-        item_date = date_parser.parse(item["date"]).replace(tzinfo=None)
+        item_date = date_parser.parse(item.date).replace(tzinfo=None)
 
         # Filtrage par date de début
         if date_start_str:
@@ -395,8 +362,8 @@ def filtre_date(
 
 
 # r2 : filtrage par source
-def filtrage_source(article: dict, source: list[str]) -> bool:
-    source_actuel = article["source"].lower()
+def filtrage_source(article: Article, source: list[str]) -> bool:
+    source_actuel = article.source.lower()
     for s in source:
         if s.lower() in source_actuel:
             return True
@@ -404,21 +371,21 @@ def filtrage_source(article: dict, source: list[str]) -> bool:
 
 
 # r2 : dédoublonnage
-def filtrage_repetition(articles: list[dict]) -> list[dict]:
+def filtrage_repetition(articles: list[Article]) -> list[Article]:
     liste_article = []
     liste_ids = []
     for a in articles:
-        if a["id"] not in liste_ids:
-            liste_ids.append(a["id"])
+        if a.id not in liste_ids:
+            liste_ids.append(a.id)
             liste_article.append(a)
     return liste_article
 
 
 # r3 : filtrage par catégorie
-def filtre_cat(article: dict, categories: list[str]) -> bool | None:
+def filtre_cat(article: Article, categories: list[str]) -> bool | None:
     """fonction de filtrage acceptant une ou plusieurs catégories indiquées dans les balises 'category' des fichiers XML."""
     check_cat = True
-    article_categories = [cat.lower() for cat in article.get("categories", [])]
+    article_categories = [cat.lower() for cat in article.categories]
     for category in categories:
         if not category.strip().lower() in article_categories:
             check_cat = False
@@ -427,117 +394,24 @@ def filtre_cat(article: dict, categories: list[str]) -> bool | None:
 
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Lire un fichier xml (flux RSS) avec une méthode à choisir",
-        epilog="Exemple d'utilisation avec filtre : python3 rss_reader.py -w glob feedparser ./corpus/ -c spiritueux vins",
-    )
-
+    parser = argparse.ArgumentParser(description="Lire un fichier RSS")
     parser.add_argument(
-        "-w", "--directory-walker", choices=("os", "pathlib", "glob"), default="glob"
+        "filepath", help="Filepath to be analyzed, either a single file or a directory"
     )
-
     parser.add_argument(
-        "-m",
-        "--methode",
-        choices=("re", "etree", "feedparser"),
-        help="Méthode à utiliser : re, etree ou feedparser",
-        default="feedparser",
-    )
-
-    parser.add_argument(
-        "--corpus",
-        dest="fichier_xml",
+        "-r",
+        "--reader",
         required=True,
-        help="Chemin vers un fichier XML ou un dossier contenant des XML",
+        choices=("re", "etree", "feedparser"),
+        default="etree",
     )
-
-    parser.add_argument(
-        "-s",
-        "--source",
-        nargs="+",
-        help="Filtrer par une ou plusieurs sources (ex: BFMTV Figaro)",
-    )
-
-    parser.add_argument(
-        "-c",
-        "--categories",
-        nargs="+",  # pour récupérer une liste de mots
-        help="Filtrer par une ou plusieurs catégories.",
-    )
-
-    # r1 : filtrage par date
-    parser.add_argument("--start", help="Date de début pour le filtrage (AAAA-MM-JJ)")
-    parser.add_argument("--end", help="Date de fin pour le filtrage (AAAA-MM-JJ)")
 
     args = parser.parse_args()
-
-    # Sélection du walker
-    if args.directory_walker == "os":
-        files = walk_os(args.fichier_xml)
-    elif args.directory_walker == "pathlib":
-        files = walk_pathlib(args.fichier_xml)
-    elif args.directory_walker == "glob":
-        files = walk_glob(args.fichier_xml)
-    else:
-        raise KeyError(f"Unknown walker: {args.directory_walker}")
-
-    if not files:
-        print("Aucun fichier XML trouvé.")
-        sys.exit(1)
-
-    articles = []
-
-    for file in files:
-        articles.extend(read_rss(args.methode, file))
-
-    print(f"\nNombre total d'articles extraits : {len(articles)}")
-
-    # Dédoublonnage
-    articles = filtrage_repetition(articles)
-
-    print(f"\nNombre total d'articles uniques : {len(articles)}\n")
-    
-    filtres_actifs = []
-    
-    if args.source:
-        sources = [s.lower() for s in args.source]
-        filtres_actifs.append(lambda item: filtrage_source(item, sources))
-
-    if args.start or args.end:
-        filtres_actifs.append(lambda item: filtre_date(item, args.start, args.end))
-
-    if args.categories:
-        # Fonction lambda ne prenant que l'article en argument (qui sera fourni à filtrage())
-        filtre_r3 = lambda article: filtre_cat(article, args.categories)
-        filtres_actifs.append(filtre_r3)
-
-    # Applique tous les filtres
-    articles = filtrage(filtres_actifs, articles)
-
-    # Affichage des résultats
-    for article in articles:
-        for key, value in article.items():
-            print(f"{key}: {value}")
-        print()
-
+    parsed_fichier= read_rss(args.reader, args.filepath )
+    for article in parsed_fichier :
+        for k, v in vars(article).items() :
+            print(f"{k} : {v}")
+        print("\n" + "-" * 40)
 
 if __name__ == "__main__":
     main()
-
-
-####### POUR L'UTILISATEUR :
-# Lancement du script :
-# 1) Ouvrir un terminal et aller dans un environnement virtuel, exemple : source venvs/plurital/bin/activate.
-# Sans un environnement virtuel, l'utilisation du module feedparser pour la méthode r3 ne fonctionnera pas.
-# 2) Installer feedparser sur le terminal avec la commande suivante : pip install feedparser
-# 3) Pour ouvrir ce script, utiliser cette commande avec ces arguments : python3 fichier.py methode chemin/vers/fichier.xml
-# Pour lancer plusieur fichier faire python3 rss_reader.py -w glob re Corpus/
-# Apres -w mettre glob, pathlib ou os
-# Exemple : python3 rss_feedparser.py r3 "Le Figaro - Vidéos.xml"
-# N.B. : Parfois, certains fichiers peuvent avoir des "espaces", il faut donc les appeller avec des guillemets (sinon, la machine va croire que ce sont des arguments : d'où l'erreur d'affichage "error: unrecognized arguments:").
-#
-# Fonctionnement des filtres (semaine 3) :
-# Si vous utilisez le filtre par catégorie (-c), veillez à toujours placer cet argument et ses mots-clés
-# à la fin de la commande, sinon ils absorberont les autres arguments obligatoires.
-# Exemple : python3 rss_reader.py -w glob feedparser ../corpus/ -c vins spiritueux
-#######
