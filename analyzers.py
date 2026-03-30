@@ -93,12 +93,12 @@ def main():
     corpus = loaders[args.from_format](args.input)
     print(f"{len(corpus)} articles chargés.")
 
-    # 2. Analyse morpho syntaxique
+    #Analyse morpho syntaxique
     print("Analyse en cours...")
     corpus_analyse = [analyzers[args.analyzer](article) for article in corpus]
     print("Analyse terminée.")
 
-    # 3. Sauvegarde dans un nouveau fichier
+    #Sauvegarde dans un nouveau fichier
     print(f"Sauvegarde vers {args.output}...")
     savers[args.to_format](corpus_analyse, args.output)
     print("Fait !")
