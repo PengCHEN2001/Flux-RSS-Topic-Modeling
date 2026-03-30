@@ -10,14 +10,18 @@ import argparse
 import json
 import pickle
 from dataclasses import dataclass, field, asdict
+import spacy
 from pathlib import Path
 import xml.etree.ElementTree as ET
+
+nlp = spacy.load("fr_core_news_md")
 
 
 @dataclass
 class Token:
     """Dataclass d’interface commune pour stocker les résultats des analyseurs."""
-    forme: str
+
+    text: str
     lemme: str
     pos: str
 
@@ -25,6 +29,7 @@ class Token:
 @dataclass
 class Article:
     """Classe représentant un article RSS."""
+
     id: str
     source: str
     title: str
@@ -39,9 +44,24 @@ class Article:
         return self.content
 
 
+def article_analyzer(article: Article) -> Article:
+    """retourne l'Article enrichi avec le résultat de l’analyse"""
+    doc = nlp(article.content)
+    for token in doc:
+        article.tokens.append(
+            Token(
+                text=token.text,
+                lemme=token.lemma_,
+                pos=token.pos_,
+            )
+        )
+
+    return article
+
+
 def _serialize_token(token: Token) -> dict[str, str]:
     return {
-        "forme": token.forme,
+        "text": token.text,
         "lemme": token.lemme,
         "pos": token.pos,
     }
@@ -55,7 +75,7 @@ def _deserialize_token(data: object, input_file: Path) -> Token:
         raise ValueError(f"Le fichier {input_file} contient un token invalide.")
 
     return Token(
-        forme=str(data.get("forme", data.get("text", ""))),
+        text=str(data.get("text", data.get("text", ""))),
         lemme=str(data.get("lemme", data.get("lemma", ""))),
         pos=str(data.get("pos", "")),
     )
@@ -175,7 +195,7 @@ def save_xml(corpus: list[Article], output_file: Path) -> None:
         tokens_element = ET.SubElement(article_element, "tokens")
         for token in article.tokens:
             token_element = ET.SubElement(tokens_element, "token")
-            ET.SubElement(token_element, "forme").text = token.forme
+            ET.SubElement(token_element, "text").text = token.text
             ET.SubElement(token_element, "lemme").text = token.lemme
             ET.SubElement(token_element, "pos").text = token.pos
 
@@ -199,7 +219,8 @@ def load_xml(input_file: Path) -> list[Article]:
         categories = []
         if categories_element is not None:
             categories = [
-                category.text or "" for category in categories_element.findall("category")
+                category.text or ""
+                for category in categories_element.findall("category")
             ]
 
         tokens = []
@@ -208,7 +229,7 @@ def load_xml(input_file: Path) -> list[Article]:
             for token_element in tokens_element.findall("token"):
                 tokens.append(
                     Token(
-                        forme=token_element.findtext("forme", default=""),
+                        text=token_element.findtext("text", default=""),
                         lemme=token_element.findtext("lemme", default=""),
                         pos=token_element.findtext("pos", default=""),
                     )
@@ -237,8 +258,12 @@ def main():
         description="Conversion d'un format à l'autre (xml, json, pickle)"
     )
 
-    parser.add_argument("-in", "--input", choices=["xml", "json", "pickle"], required=True)
-    parser.add_argument("-out", "--output", choices=["xml", "json", "pickle"], required=True)
+    parser.add_argument(
+        "-in", "--input", choices=["xml", "json", "pickle"], required=True
+    )
+    parser.add_argument(
+        "-out", "--output", choices=["xml", "json", "pickle"], required=True
+    )
     parser.add_argument("fichier")
 
     args = parser.parse_args()

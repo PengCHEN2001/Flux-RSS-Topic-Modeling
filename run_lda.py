@@ -1,170 +1,364 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+r"""
+LDA Model
+=========
+
+Introduces Gensim's LDA model and demonstrates its use on the NIPS corpus.
+
+"""
 
 import argparse
+
+# import nltk
 import logging
-from pathlib import Path
 
-from gensim.corpora import Dictionary
-from gensim.models import LdaModel, Phrases
-
-from datastructures import Article, load_json, load_pickle, load_xml
-
-logging.basicConfig(
-    format="%(asctime)s : %(levelname)s : %(message)s",
-    level=logging.INFO,
+from datastructures import (
+    Article,
+    load_json,
+    load_pickle,
+    load_xml,
 )
 
-# Lemmatisations très fréquentes et peu informatives pour LDA
-STOP_LEMMAS = {
-    "être", "avoir", "faire", "aller", "dire", "venir", "savoir",
-    "pouvoir", "falloir", "voir", "vouloir",
-    "un", "une", "le", "la", "les",
-    "du", "de", "des", "d’", "l’", "s’", "qu’", "c’",
-    "ce", "cette", "ces", "celui", "celle",
-    "et", "ou", "mais", "donc", "or", "ni", "car",
-    "en", "dans", "sur", "sous", "par", "pour", "avec", "sans",
-    "à", "au", "aux",
-    "il", "elle", "on", "nous", "vous", "ils", "elles",
-    "je", "tu", "me", "te", "se",
-    "que", "qui", "quoi", "dont", "où",
-    "tout", "très", "plus", "moins", "aussi",
-    "son", "sa", "ses", "notre", "votre", "leur", "leurs",
-    "ne", "pas", "plusieurs", "certain", "après", "depuis",
-    "premier", "nouveau", "an", "année", "semaine",
-    "france", "français", "paris",
-    "vidéo", "décryptage", "bfm", "bfmtv"
-}
+logging.basicConfig(
+    format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO
+)
+
+###############################################################################
+# The purpose of this tutorial is to demonstrate how to train and tune an LDA model.
+#
+# In this tutorial we will:
+#
+# * Load input data.
+# * Pre-process that data.
+# * Transform documents into bag-of-words vectors.
+# * Train an LDA model.
+#
+# This tutorial will **not**:
+#
+# * Explain how Latent Dirichlet Allocation works
+# * Explain how the LDA model performs inference
+# * Teach you all the parameters and options for Gensim's LDA implementation
+#
+# If you are not familiar with the LDA model or how to use it in Gensim, I (Olavur Mortensen)
+# suggest you read up on that before continuing with this tutorial. Basic
+# understanding of the LDA model should suffice. Examples:
+#
+# * `Introduction to Latent Dirichlet Allocation <http://blog.echen.me/2011/08/22/introduction-to-latent-dirichlet-allocation>`_
+# * Gensim tutorial: :ref:`sphx_glr_auto_examples_core_run_topics_and_transformations.py`
+# * Gensim's LDA model API docs: :py:class:`gensim.models.LdaModel`
+#
+# I would also encourage you to consider each step when applying the model to
+# your data, instead of just blindly applying my solution. The different steps
+# will depend on your data and possibly your goal with the model.
+#
+# Data
+# ----
+#
+# I have used a corpus of NIPS papers in this tutorial, but if you're following
+# this tutorial just to learn about LDA I encourage you to consider picking a
+# corpus on a subject that you are familiar with. Qualitatively evaluating the
+# output of an LDA model is challenging and can require you to understand the
+# subject matter of your corpus (depending on your goal with the model).
+#
+# NIPS (Neural Information Processing Systems) is a machine learning conference
+# so the subject matter should be well suited for most of the target audience
+# of this tutorial.  You can download the original data from Sam Roweis'
+# `website <http://www.cs.nyu.edu/~roweis/data.html>`_.  The code below will
+# also do that for you.
+#
+# .. Important::
+#     The corpus contains 1740 documents, and not particularly long ones.
+#     So keep in mind that this tutorial is not geared towards efficiency, and be
+#     careful before applying the code to a large dataset.
+#
 
 
-def load_corpus_format(input_format: str, input_file: str | Path) -> list[Article]:
-    loaders = {
-        "xml": load_xml,
-        "json": load_json,
-        "pickle": load_pickle,
-    }
-    return loaders[input_format](Path(input_file))
+# def extract_documents(url="https://cs.nyu.edu/~roweis/data/nips12raw_str602.tgz"):
+#     with smart_open.open(url, "rb") as file:
+#         with tarfile.open(fileobj=file) as tar:
+#             for member in tar.getmembers():
+#                 if member.isfile() and re.search(
+#                     r"nipstxt/nips\d+/\d+\.txt", member.name
+#                 ):
+#                     member_bytes = tar.extractfile(member).read()
+#                     yield member_bytes.decode("utf-8", errors="replace")
 
 
-def extract_documents(
-    corpus: list[Article],
-    unit: str = "lemme",
-    pos_filter: set[str] | None = None,
-    min_len: int = 2,
-    remove_stop_lemmas: bool = True,
-) -> list[list[str]]:
-    """
-    Transforme un corpus d'articles en liste de documents tokenisés
-    pour LDA. Chaque document correspond à un article.
-    """
-    docs: list[list[str]] = []
+# docs = list(extract_documents("nips12raw_str602.tgz"))
 
+###############################################################################
+# So we have a list of 1740 documents, where each document is a Unicode string.
+# If you're thinking about using your own corpus, then you need to make sure
+# that it's in the same format (list of Unicode strings) before proceeding
+# with the rest of this tutorial.
+#
+# print(len(docs))
+# print(docs[0][:500])
+
+###############################################################################
+# Pre-process and vectorize the documents
+# ---------------------------------------
+#
+# As part of preprocessing, we will:
+#
+# * Tokenize (split the documents into tokens).
+# * Lemmatize the tokens.
+# * Compute bigrams.
+# * Compute a bag-of-words representation of the data.
+#
+# First we tokenize the text using a regular expression tokenizer from NLTK. We
+# remove numeric tokens and tokens that are only a single character, as they
+# don't tend to be useful, and the dataset contains a lot of them.
+#
+# .. Important::
+#
+#    This tutorial uses the nltk library for preprocessing, although you can
+#    replace it with something else if you want.
+#
+
+# # Tokenize the documents.
+# from nltk.tokenize import RegexpTokenizer
+
+# # Split the documents into tokens.
+# tokenizer = RegexpTokenizer(r"\w+")
+# for idx in range(len(docs)):
+#     docs[idx] = docs[idx].lower()  # Convert to lowercase.
+#     docs[idx] = tokenizer.tokenize(docs[idx])  # Split into words.
+
+# # Remove numbers, but not words that contain numbers.
+# docs = [[token for token in doc if not token.isnumeric()] for doc in docs]
+
+# # Remove words that are only one character.
+# docs = [[token for token in doc if len(token) > 1] for doc in docs]
+
+###############################################################################
+# We use the WordNet lemmatizer from NLTK. A lemmatizer is preferred over a
+# stemmer in this case because it produces more readable words. Output that is
+# easy to read is very desirable in topic modelling.
+#
+
+# # Download the WordNet data
+# from nltk import download
+
+# download("wordnet")
+
+# # Lemmatize the documents.
+# from nltk.stem.wordnet import WordNetLemmatizer
+
+# lemmatizer = WordNetLemmatizer()
+# docs = [[lemmatizer.lemmatize(token) for token in doc] for doc in docs]
+
+
+###############################################################################
+# We find bigrams in the documents. Bigrams are sets of two adjacent words.
+# Using bigrams we can get phrases like "machine_learning" in our output
+# (spaces are replaced with underscores); without bigrams we would only get
+# "machine" and "learning".
+#
+# Note that in the code below, we find bigrams and then add them to the
+# original data, because we would like to keep the words "machine" and
+# "learning" as well as the bigram "machine_learning".
+#
+# .. Important::
+#     Computing n-grams of large dataset can be very computationally
+#     and memory intensive.
+#
+
+# Remove rare and common tokens.
+from gensim.corpora import Dictionary
+
+# Train LDA model.
+from gensim.models import LdaModel
+
+
+def topic_modeling_lda(corpus: list[str], attr: str) -> list[str]:
+    docs = []
     for article in corpus:
-        doc_tokens: list[str] = []
-
+        article_doc = []
         for token in article.tokens:
-            if pos_filter is not None and token.pos not in pos_filter:
-                continue
+            value = getattr(token, attr, "")
+            article_doc.append(value)
+        if article_doc:
+            docs.append(article_doc)
 
-            value = token.lemme if unit == "lemme" else token.forme
-            if value is None:
-                continue
+    # Remove words that are only one character.
+    docs = [[token for token in doc if len(token) > 1] for doc in docs]
 
-            value = value.strip().lower()
-            if len(value) < min_len:
-                continue
-            if value.isnumeric():
-                continue
+    # # Remove numbers, but not words that contain numbers.
+    docs = [[token for token in doc if not token.isnumeric()] for doc in docs]
+    # Compute bigrams.
+    from gensim.models import Phrases
 
-            if remove_stop_lemmas and unit == "lemme" and value in STOP_LEMMAS:
-                continue
+    # Add bigrams and trigrams to docs (only ones that appear 20 times or more).
+    bigram = Phrases(docs)
+    for idx in range(len(docs)):
+        for token in bigram[docs[idx]]:
+            if "_" in token:
+                # Token is a bigram, add to document.
+                docs[idx].append(token)
 
-            doc_tokens.append(value)
+    ###############################################################################
+    # We remove rare words and common words based on their *document frequency*.
+    # Below we remove words that appear in less than 20 documents or in more than
+    # 50% of the documents. Consider trying to remove words only based on their
+    # frequency, or maybe combining that with this approach.
+    #
 
-        if doc_tokens:
-            docs.append(doc_tokens)
-
-    return docs
-
-
-def topic_modeling_lda(
-    docs: list[list[str]],
-    num_topics: int = 10,
-    passes: int = 20,
-    iterations: int = 400,
-    chunksize: int = 2000,
-    no_below: int = 2,
-    no_above: float = 0.5,
-    add_bigrams: bool = False,
-):
-    """
-    Entraîne un modèle LDA sur une liste de documents tokenisés.
-    """
-    if not docs:
-        raise ValueError("Aucun document exploitable après filtrage.")
-
-    docs = [doc for doc in docs if doc]
-
-    if add_bigrams:
-        bigram = Phrases(docs, min_count=5, threshold=10)
-        for idx in range(len(docs)):
-            for token in bigram[docs[idx]]:
-                if "_" in token:
-                    docs[idx].append(token)
-
-    docs = [doc for doc in docs if doc]
-
-    if not docs:
-        raise ValueError("Aucun document exploitable après ajout des bigrammes.")
-
+    # Create a dictionary representation of the documents.
     dictionary = Dictionary(docs)
-    dictionary.filter_extremes(no_below=no_below, no_above=no_above)
 
-    corpus_bow = [dictionary.doc2bow(doc) for doc in docs]
-    corpus_bow = [doc for doc in corpus_bow if len(doc) > 0]
+    # Filter out words that occur less than 20 documents, or more than 50% of the documents.
+    # dictionary.filter_extremes(no_below=1, no_above=0.5, keep_n=None)
+    # print(dictionary)
+    ###############################################################################
+    # Finally, we transform the documents to a vectorized form. We simply compute
+    # the frequency of each word, including the bigrams.
+    #
 
-    if len(dictionary) == 0:
-        raise ValueError("Le dictionnaire est vide après filtrage.")
+    # Bag-of-words representation of the documents.
+    corpus = [dictionary.doc2bow(doc) for doc in docs]
 
-    if not corpus_bow:
-        raise ValueError(
-            "Le corpus bag-of-words est vide après filtrage. "
-            "Essayez de réduire no_below, augmenter no_above, "
-            "ou modifier le filtrage POS."
-        )
+    ###############################################################################
+    # Let's see how many tokens and documents we have to train on.
+    #
 
-    print(f"Number of unique tokens: {len(dictionary)}")
-    print(f"Number of documents: {len(corpus_bow)}")
+    print("Number of unique tokens: %d" % len(dictionary))
+    print("Number of documents: %d" % len(corpus))
+
+    ###############################################################################
+    # Training
+    # --------
+    #
+    # We are ready to train the LDA model. We will first discuss how to set some of
+    # the training parameters.
+    #
+    # First of all, the elephant in the room: how many topics do I need? There is
+    # really no easy answer for this, it will depend on both your data and your
+    # application. I have used 10 topics here because I wanted to have a few topics
+    # that I could interpret and "label", and because that turned out to give me
+    # reasonably good results. You might not need to interpret all your topics, so
+    # you could use a large number of topics, for example 100.
+    #
+    # ``chunksize`` controls how many documents are processed at a time in the
+    # training algorithm. Increasing chunksize will speed up training, at least as
+    # long as the chunk of documents easily fit into memory. I've set ``chunksize =
+    # 2000``, which is more than the amount of documents, so I process all the
+    # data in one go. Chunksize can however influence the quality of the model, as
+    # discussed in Hoffman and co-authors [2], but the difference was not
+    # substantial in this case.
+    #
+    # ``passes`` controls how often we train the model on the entire corpus.
+    # Another word for passes might be "epochs". ``iterations`` is somewhat
+    # technical, but essentially it controls how often we repeat a particular loop
+    # over each document. It is important to set the number of "passes" and
+    # "iterations" high enough.
+    #
+    # I suggest the following way to choose iterations and passes. First, enable
+    # logging (as described in many Gensim tutorials), and set ``eval_every = 1``
+    # in ``LdaModel``. When training the model look for a line in the log that
+    # looks something like this::
+    #
+    #    2016-06-21 15:40:06,753 - gensim.models.ldamodel - DEBUG - 68/1566 documents converged within 400 iterations
+    #
+    # If you set ``passes = 20`` you will see this line 20 times. Make sure that by
+    # the final passes, most of the documents have converged. So you want to choose
+    # both passes and iterations to be high enough for this to happen.
+    #
+    # We set ``alpha = 'auto'`` and ``eta = 'auto'``. Again this is somewhat
+    # technical, but essentially we are automatically learning two parameters in
+    # the model that we usually would have to specify explicitly.
+    #
+
+    # Set training parameters.
+    num_topics = 10
+    chunksize = 2000
+    passes = 20
+    iterations = 400
+    eval_every = None  # Don't evaluate model perplexity, takes too much time.
+
+    # Make an index to word dictionary.
+    temp = dictionary[0]  # This is only to "load" the dictionary.
+    id2word = dictionary.id2token
 
     model = LdaModel(
-        corpus=corpus_bow,
-        id2word=dictionary,
+        corpus=corpus,
+        id2word=id2word,
         chunksize=chunksize,
         alpha="auto",
         eta="auto",
         iterations=iterations,
         num_topics=num_topics,
         passes=passes,
-        eval_every=None,
+        eval_every=eval_every,
     )
 
-    top_topics = model.top_topics(corpus_bow)
-    avg_topic_coherence = sum(t[1] for t in top_topics) / num_topics
-    print(f"Average topic coherence: {avg_topic_coherence:.4f}")
+    ###############################################################################
+    # We can compute the topic coherence of each topic. Below we display the
+    # average topic coherence and print the topics in order of topic coherence.
+    #
+    # Note that we use the "Umass" topic coherence measure here (see
+    # :py:func:`gensim.models.ldamodel.LdaModel.top_topics`), Gensim has recently
+    # obtained an implementation of the "AKSW" topic coherence measure (see
+    # accompanying blog post, https://rare-technologies.com/what-is-topic-coherence/).
+    #
+    # If you are familiar with the subject of the articles in this dataset, you can
+    # see that the topics below make a lot of sense. However, they are not without
+    # flaws. We can see that there is substantial overlap between some topics,
+    # others are hard to interpret, and most of them have at least some terms that
+    # seem out of place. If you were able to do better, feel free to share your
+    # methods on the blog at https://rare-technologies.com/lda-training-tips/ !
+    #
 
-    print("\nTopics:")
-    for i, topic in model.print_topics(num_topics=num_topics, num_words=10):
-        print(f"Topic {i}: {topic}")
+    top_topics = model.top_topics(corpus)
 
-    return model, dictionary, corpus_bow, top_topics
+    # Average topic coherence is the sum of topic coherences of all topics, divided by the number of topics.
+    avg_topic_coherence = sum([t[1] for t in top_topics]) / num_topics
+    print("Average topic coherence: %.4f." % avg_topic_coherence)
+
+    from pprint import pprint
+
+    pprint(top_topics)
+
+
+###############################################################################
+# Things to experiment with
+# -------------------------
+#
+# * ``no_above`` and ``no_below`` parameters in ``filter_extremes`` method.
+# * Adding trigrams or even higher order n-grams.
+# * Consider whether using a hold-out set or cross-validation is the way to go for you.
+# * Try other datasets.
+#
+# Where to go from here
+# ---------------------
+#
+# * Check out a RaRe blog post on the AKSW topic coherence measure (https://rare-technologies.com/what-is-topic-coherence/).
+# * pyLDAvis (https://pyldavis.readthedocs.io/en/latest/index.html).
+# * Read some more Gensim tutorials (https://github.com/RaRe-Technologies/gensim/blob/develop/tutorials.md#tutorials).
+# * If you haven't already, read [1] and [2] (see references).
+#
+# References
+# ----------
+#
+# 1. "Latent Dirichlet Allocation", Blei et al. 2003.
+# 2. "Online Learning for Latent Dirichlet Allocation", Hoffman et al. 2010.
+#
+
+
+def load_corpus_format(input_format: str, input_file: str) -> list[Article]:
+    fonctions_load = {
+        "xml": load_xml,
+        "json": load_json,
+        "pickle": load_pickle,
+    }
+    return fonctions_load[input_format](input_file)
 
 
 def main():
+
     parser = argparse.ArgumentParser(description="Topic modeling avec LDA")
 
     parser.add_argument(
-        "input_file",
-        help="Chemin vers le fichier de corpus en entrée.",
+        "input_file", help="chemin vers le fichier de corpus en entree."
     )
     parser.add_argument(
         "-f",
@@ -172,90 +366,24 @@ def main():
         dest="input_format",
         choices=("xml", "json", "pickle"),
         default="json",
-        help="Format du corpus d'entrée (défaut : json).",
+        metavar="FORMAT",
+        help="Format du corpus d'entrée : xml, json ou pickle, (défaut : json).",
     )
     parser.add_argument(
-        "--unit",
-        choices=("forme", "lemme"),
+        "-a",
+        "--attribut",
+        dest="attr",
+        choices=("text", "lemme"),
         default="lemme",
-        help="Unité textuelle à utiliser pour LDA (défaut : lemme).",
+        metavar="ATTRIBUT",
+        help="Choisir entre les mot-formes ou les lemmes pour le LDA (défaut : lemme).",
     )
-    parser.add_argument(
-        "--pos",
-        nargs="*",
-        default=None,
-        help="Filtrer sur certaines catégories grammaticales, ex: --pos NOUN VERB ADJ",
-    )
-    parser.add_argument(
-        "--num-topics",
-        type=int,
-        default=10,
-        help="Nombre de topics LDA (défaut : 10).",
-    )
-    parser.add_argument(
-        "--passes",
-        type=int,
-        default=20,
-        help="Nombre de passes d'entraînement (défaut : 20).",
-    )
-    parser.add_argument(
-        "--iterations",
-        type=int,
-        default=400,
-        help="Nombre d'itérations internes (défaut : 400).",
-    )
-    parser.add_argument(
-        "--chunksize",
-        type=int,
-        default=2000,
-        help="Taille des blocs de traitement (défaut : 2000).",
-    )
-    parser.add_argument(
-        "--no-below",
-        type=int,
-        default=2,
-        help="Supprime les termes présents dans moins de N documents (défaut : 2).",
-    )
-    parser.add_argument(
-        "--no-above",
-        type=float,
-        default=0.5,
-        help="Supprime les termes présents dans plus de cette proportion de documents (défaut : 0.5).",
-    )
-    parser.add_argument(
-        "--bigrams",
-        action="store_true",
-        help="Active l'ajout de bigrammes.",
-    )
-    parser.add_argument(
-        "--keep-stop-lemmas",
-        action="store_true",
-        help="Conserve les lemmes-outils fréquents au lieu de les filtrer.",
-    )
-
     args = parser.parse_args()
 
+    # Chargement des articles depuis un corpus
     corpus = load_corpus_format(args.input_format, args.input_file)
 
-    pos_filter = set(args.pos) if args.pos else None
-
-    docs = extract_documents(
-        corpus=corpus,
-        unit=args.unit,
-        pos_filter=pos_filter,
-        remove_stop_lemmas=not args.keep_stop_lemmas,
-    )
-
-    topic_modeling_lda(
-        docs=docs,
-        num_topics=args.num_topics,
-        passes=args.passes,
-        iterations=args.iterations,
-        chunksize=args.chunksize,
-        no_below=args.no_below,
-        no_above=args.no_above,
-        add_bigrams=args.bigrams,
-    )
+    topic_modeling_lda(corpus, args.attr)
 
 
 if __name__ == "__main__":
