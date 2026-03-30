@@ -10,3 +10,6 @@ __pycache__/
 
 corpus.json
 corpus_analyzed.json
+
+pyproject.toml
+uv.lock

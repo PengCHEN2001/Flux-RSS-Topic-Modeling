@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import sys
 from pathlib import Path
-import stanza
+
 from datastructures import (
     Token,
     Article,
@@ -18,9 +17,7 @@ from datastructures import (
 )
 
 
-# spacy
-
-
+# spaCy
 def analyzer_spacy(article: Article) -> Article:
     return article_analyzer(article)
 
@@ -32,8 +29,11 @@ _stanza_pipeline = None
 def get_stanza_pipeline():
     global _stanza_pipeline
     if _stanza_pipeline is None:
+        import stanza
         _stanza_pipeline = stanza.Pipeline(
-            lang="fr", processors="tokenize,lemma,pos", use_gpu=False
+            lang="fr",
+            processors="tokenize,lemma,pos",
+            use_gpu=False,
         )
     return _stanza_pipeline
 
@@ -49,7 +49,11 @@ def analyzer_stanza(article: Article) -> Article:
 
     for sentence in doc.sentences:
         for word in sentence.words:
-            new_token = Token(forme=word.text, lemme=word.lemma, pos=word.upos)
+            new_token = Token(
+                text=word.text,
+                lemme=word.lemma,
+                pos=word.upos,
+            )
             enriched_tokens.append(new_token)
 
     article.tokens = enriched_tokens
@@ -64,7 +68,6 @@ def get_trankit_pipeline():
     global _trankit_pipeline
     if _trankit_pipeline is None:
         from trankit import Pipeline
-
         _trankit_pipeline = Pipeline("french")
     return _trankit_pipeline
 
@@ -79,11 +82,12 @@ def analyzer_trankit(article: Article) -> Article:
     for sentence in p(article.content)["sentences"]:
         for token in sentence["tokens"]:
             tok = Token(
-                forme=token.get("text"),
+                text=token.get("text"),
                 lemme=token.get("lemma"),
                 pos=token.get("upos"),
             )
             article.tokens.append(tok)
+
     return article
 
 
@@ -93,11 +97,19 @@ def main():
     parser.add_argument("input", type=Path, help="Fichier corpus en entrée")
     parser.add_argument("output", type=Path, help="Fichier corpus en sortie")
     parser.add_argument(
-        "--from-format", choices=["json", "pickle", "xml"], required=True
+        "--from-format",
+        choices=["json", "pickle", "xml"],
+        required=True,
     )
-    parser.add_argument("--to-format", choices=["json", "pickle", "xml"], required=True)
     parser.add_argument(
-        "--analyzer", choices=["spacy", "stanza", "trankit"], required=True
+        "--to-format",
+        choices=["json", "pickle", "xml"],
+        required=True,
+    )
+    parser.add_argument(
+        "--analyzer",
+        choices=["spacy", "stanza", "trankit"],
+        required=True,
     )
     args = parser.parse_args()
 

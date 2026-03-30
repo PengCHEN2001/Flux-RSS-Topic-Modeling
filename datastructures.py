@@ -14,7 +14,7 @@ import spacy
 from pathlib import Path
 import xml.etree.ElementTree as ET
 
-nlp = spacy.load("fr_core_news_md")
+nlp = spacy.load("fr_core_news_sm")
 
 
 @dataclass
@@ -44,9 +44,18 @@ class Article:
         return self.content
 
 
+@dataclass
+class Topic:
+    coherence_score:float
+    topic_representation: list[dict]
+    
+    
+#r1
+
 def article_analyzer(article: Article) -> Article:
     """retourne l'Article enrichi avec le résultat de l’analyse"""
     doc = nlp(article.content)
+    article.tokens = []
     for token in doc:
         article.tokens.append(
             Token(
@@ -55,7 +64,6 @@ def article_analyzer(article: Article) -> Article:
                 pos=token.pos_,
             )
         )
-
     return article
 
 
