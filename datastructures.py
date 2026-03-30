@@ -30,6 +30,10 @@ class Article:
     # pour garder une liste plate
     tokens: list[Token] = field(default_factory=list)
 
+@dataclass
+class Topic:
+    coherence_score:float
+    topic_representation: list[dict]
 #r1
 def save_xml(corpus: list[Article], output_file: Path) -> None:
     """Sauvegarde une liste d'articles en fichier XML"""
