@@ -89,6 +89,22 @@ def run_lda(articles:list[Article], num_topics:int, passes:int) ->list[Topic]:
             ))
     return formated_topic
 
+def filter_pos(articles:list[Article], use_lemma=True, allowed_pos=['NOUN', 'ADJ']):
+
+    docs = []
+    for art in articles:
+        # On extrait soit le lemme, soit la forme selon l'option choisie
+        # On ne garde que les catégories grammaticales demandées
+        words = [
+            t.lemme if use_lemma else t.form
+            for t in art.tokens
+            if t.pos in allowed_pos
+        ]
+        # On n'ajoute le document que s'il n'est pas vide après filtrage
+        if words:
+            docs.append(words)
+    return docs
+
 
 def main() -> None:
     parser = argparse.ArgumentParser(
@@ -109,7 +125,16 @@ def main() -> None:
         help="Format du corpus sérialisé en entree",
     )
     parser.add_argument(
-        "--output-file", type=Path, help="Chemin du fichier de sortie apres topic modelling "
+        "--output-file", type=Path,
+        help="Chemin du fichier de sortie apres topic modelling "
+    )
+    parser.add_argument("--mode",
+        choices=['lemme','forme'],
+        default='lemme', help="Utiliser le lemme ou la forme brute"
+    )
+    parser.add_argument("--pos",
+        nargs='+', default=['NOUN', 'ADJ'],
+        help="Filtre POS (ex: NOUN ADJ VERB)"
     )
 
     args = parser.parse_args()
@@ -119,7 +144,8 @@ def main() -> None:
          articles=load_xml(args.input_file)
     elif args.input_format == 'pickle':
          articles=load_pickle(args.input_file)
-
+    is_lemme = (args.mode == 'lemme')
+    docs = filter_pos(articles, use_lemma=is_lemme, allowed_pos=args.pos)
     topics= run_lda(articles, args.num_topics, args.passes)
     with open(args.output_file,'w', encoding='utf-8') as f:
          json.dump([asdict(topic) for topic in topics],f,indent=4)
@@ -132,3 +158,4 @@ def main() -> None:
 
 if __name__ == "__main__":
     main()
+
