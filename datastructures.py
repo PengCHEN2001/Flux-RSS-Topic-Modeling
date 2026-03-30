@@ -1,40 +1,35 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
-"""
-Module datastructures - Gestion des Articles et sérialisation multi-formats
-Supporte: XML, JSON, Pickle
-"""
 
 import sys
+
+if __name__ == "__main__":
+    sys.modules["datastructures"] = sys.modules[__name__]
+
 import argparse
 import json
 import pickle
-import xml.etree.ElementTree as ET
-import spacy
 from dataclasses import dataclass, field, asdict
+import spacy
 from pathlib import Path
+import xml.etree.ElementTree as ET
 
-
-_spacy_nlp = None
-
-def get_spacy_model():
-    global _spacy_nlp
-    if _spacy_nlp is None:
-        _spacy_nlp = spacy.load("fr_core_news_sm")
-    return _spacy_nlp
+nlp = spacy.load("fr_core_news_sm")
 
 
 @dataclass
 class Token:
-    """Classe représentant un token enrichi (Ex 3)"""
-    forme: str
-    lemme: str | None
-    pos: str | None
+    """Dataclass d’interface commune pour stocker les résultats des analyseurs."""
+
+    text: str
+    lemme: str
+    pos: str
 
 
 @dataclass
 class Article:
-    """Classe représentant un article RSS"""
+    """Classe représentant un article RSS."""
+
     id: str
     source: str
     title: str
@@ -43,145 +38,58 @@ class Article:
     categories: list[str] = field(default_factory=list)
     tokens: list[Token] = field(default_factory=list)
 
+    @property
+    def description(self) -> str:
+        """Alias de compatibilité avec d'anciens fichiers."""
+        return self.content
+
+
+@dataclass
+class Topic:
+    coherence_score:float
+    topic_representation: list[dict]
+    
+    
+#r1
 
 def article_analyzer(article: Article) -> Article:
-    """Retourne l'Article enrichi avec le résultat de l’analyse spaCy."""
-    if not article.content:
-        return article
-
-    nlp = get_spacy_model()
+    """retourne l'Article enrichi avec le résultat de l’analyse"""
     doc = nlp(article.content)
     article.tokens = []
-
     for token in doc:
         article.tokens.append(
             Token(
-                forme=token.text,
+                text=token.text,
                 lemme=token.lemma_,
                 pos=token.pos_,
             )
         )
-
     return article
 
 
-# r1
-def save_xml(corpus: list[Article], output_file: Path) -> None:
-    """Sauvegarde une liste d'articles en fichier XML"""
-    output_file = Path(output_file)
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-
-    root = ET.Element("corpus")
-    for art in corpus:
-        item = ET.SubElement(root, "item")
-
-        ET.SubElement(item, "id").text = art.id
-        ET.SubElement(item, "source").text = art.source
-        ET.SubElement(item, "title").text = art.title
-        ET.SubElement(item, "content").text = art.content
-        ET.SubElement(item, "date").text = art.date
-        ET.SubElement(item, "categories").text = "|".join(art.categories)
-
-        tokens_elem = ET.SubElement(item, "tokens")
-        for tok in art.tokens:
-            tok_elem = ET.SubElement(tokens_elem, "token")
-            ET.SubElement(tok_elem, "forme").text = tok.forme or ""
-            ET.SubElement(tok_elem, "lemme").text = tok.lemme or ""
-            ET.SubElement(tok_elem, "pos").text = tok.pos or ""
-
-    tree = ET.ElementTree(root)
-    tree.write(output_file, encoding="utf-8", xml_declaration=True)
+def _serialize_token(token: Token) -> dict[str, str]:
+    return {
+        "text": token.text,
+        "lemme": token.lemme,
+        "pos": token.pos,
+    }
 
 
-def load_xml(input_file: Path) -> list[Article]:
-    """Charge une liste d'articles depuis un fichier XML"""
-    input_file = Path(input_file)
+def _deserialize_token(data: object, input_file: Path) -> Token:
+    if isinstance(data, Token):
+        return data
 
-    if not input_file.exists():
-        raise FileNotFoundError(f"Fichier XML non trouvé: {input_file}")
+    if not isinstance(data, dict):
+        raise ValueError(f"Le fichier {input_file} contient un token invalide.")
 
-    try:
-        tree = ET.parse(input_file)
-        root = tree.getroot()
-
-        articles = []
-        for item in root.findall("item"):
-            cats_raw = item.findtext("categories", "")
-            categories = cats_raw.split("|") if cats_raw else []
-
-            tokens = []
-            tokens_elem = item.find("tokens")
-            if tokens_elem is not None:
-                for tok_elem in tokens_elem.findall("token"):
-                    tokens.append(
-                        Token(
-                            forme=tok_elem.findtext("forme", ""),
-                            lemme=tok_elem.findtext("lemme", ""),
-                            pos=tok_elem.findtext("pos", "")
-                        )
-                    )
-
-            articles.append(
-                Article(
-                    id=item.findtext("id", ""),
-                    source=item.findtext("source", ""),
-                    title=item.findtext("title", ""),
-                    content=item.findtext("content", ""),
-                    date=item.findtext("date", ""),
-                    categories=[c for c in categories if c],
-                    tokens=tokens
-                )
-            )
-        return articles
-
-    except ET.ParseError as e:
-        raise ValueError(f"Fichier XML invalide: {e}")
+    return Token(
+        text=str(data.get("text", data.get("text", ""))),
+        lemme=str(data.get("lemme", data.get("lemma", ""))),
+        pos=str(data.get("pos", "")),
+    )
 
 
-# r2
-def save_json(corpus: list[Article], output_file: Path) -> None:
-    """Sauvegarde une liste d'articles en fichier JSON"""
-    output_file = Path(output_file)
-    output_file.parent.mkdir(parents=True, exist_ok=True)
-
-    with open(output_file, "w", encoding="utf-8") as f:
-        json.dump([asdict(art) for art in corpus], f, indent=4, ensure_ascii=False)
-
-
-def load_json(input_file: Path) -> list[Article]:
-    """Charge une liste d'articles depuis un fichier JSON"""
-    input_file = Path(input_file)
-
-    if not input_file.exists():
-        raise FileNotFoundError(f"Fichier JSON non trouvé: {input_file}")
-
-    try:
-        with open(input_file, "r", encoding="utf-8") as f:
-            data = json.load(f)
-
-        articles = []
-        for art_data in data:
-            tokens = [Token(**t) for t in art_data.get("tokens", [])]
-            articles.append(
-                Article(
-                    id=art_data["id"],
-                    source=art_data["source"],
-                    title=art_data["title"],
-                    content=art_data["content"],
-                    date=art_data["date"],
-                    categories=art_data.get("categories", []),
-                    tokens=tokens
-                )
-            )
-        return articles
-
-    except json.JSONDecodeError as e:
-        raise ValueError(f"Fichier JSON invalide: {e}")
-
-
-# r3
 def save_pickle(corpus: list[Article], output_file: Path) -> None:
-    """Sauvegarde une liste d'articles en fichier Pickle"""
     output_file = Path(output_file)
     output_file.parent.mkdir(parents=True, exist_ok=True)
 
@@ -190,55 +98,204 @@ def save_pickle(corpus: list[Article], output_file: Path) -> None:
 
 
 def load_pickle(input_file: Path) -> list[Article]:
-    """Charge une liste d'articles depuis un fichier Pickle"""
     input_file = Path(input_file)
 
-    if not input_file.exists():
-        raise FileNotFoundError(f"Fichier Pickle non trouvé: {input_file}")
+    with open(input_file, "rb") as f:
+        corpus = pickle.load(f)
 
-    try:
-        with open(input_file, "rb") as f:
-            return pickle.load(f)
-    except (pickle.UnpicklingError, EOFError) as e:
-        raise ValueError(f"Fichier Pickle invalide: {e}")
+    if not isinstance(corpus, list):
+        raise ValueError(f"Le fichier {input_file} n'est pas un corpus sérialisé.")
+
+    for article in corpus:
+        if not isinstance(article, Article):
+            raise ValueError(
+                f"Le fichier {input_file} contient des données incompatibles."
+            )
+        if not isinstance(article.tokens, list):
+            raise ValueError(f"Le fichier {input_file} contient des tokens invalides.")
+        article.tokens = [
+            _deserialize_token(token, input_file) for token in article.tokens
+        ]
+
+    return corpus
+
+
+def save_json(corpus: list[Article], output_file: Path) -> None:
+    output_file = Path(output_file)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    data = [
+        {
+            "id": article.id,
+            "source": article.source,
+            "title": article.title,
+            "content": article.content,
+            "date": article.date,
+            "categories": article.categories,
+            "tokens": [_serialize_token(token) for token in article.tokens],
+        }
+        for article in corpus
+    ]
+
+    with open(output_file, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+
+
+def load_json(input_file: Path) -> list[Article]:
+    input_file = Path(input_file)
+
+    with open(input_file, "r", encoding="utf-8") as f:
+        data = json.load(f)
+
+    if not isinstance(data, list):
+        raise ValueError(f"Le fichier {input_file} n'est pas un corpus JSON valide.")
+
+    corpus = []
+    for item in data:
+        if not isinstance(item, dict):
+            raise ValueError(f"Le fichier {input_file} contient des données invalides.")
+
+        categories = item.get("categories", [])
+        tokens = item.get("tokens", item.get("analysis", []))
+
+        if not isinstance(categories, list):
+            raise ValueError(
+                f"Le fichier {input_file} contient des catégories invalides."
+            )
+        if not isinstance(tokens, list):
+            raise ValueError(f"Le fichier {input_file} contient des tokens invalides.")
+
+        content = str(item.get("content", item.get("description", "")))
+
+        corpus.append(
+            Article(
+                id=str(item.get("id", "")),
+                source=str(item.get("source", "")),
+                title=str(item.get("title", "")),
+                content=content,
+                date=str(item.get("date", "")),
+                categories=[str(category) for category in categories],
+                tokens=[_deserialize_token(token, input_file) for token in tokens],
+            )
+        )
+
+    return corpus
+
+
+def save_xml(corpus: list[Article], output_file: Path) -> None:
+    output_file = Path(output_file)
+    output_file.parent.mkdir(parents=True, exist_ok=True)
+
+    root = ET.Element("corpus")
+
+    for article in corpus:
+        article_element = ET.SubElement(root, "article")
+        ET.SubElement(article_element, "id").text = article.id
+        ET.SubElement(article_element, "source").text = article.source
+        ET.SubElement(article_element, "title").text = article.title
+        ET.SubElement(article_element, "content").text = article.content
+        ET.SubElement(article_element, "date").text = article.date
+
+        categories_element = ET.SubElement(article_element, "categories")
+        for category in article.categories:
+            ET.SubElement(categories_element, "category").text = category
+
+        tokens_element = ET.SubElement(article_element, "tokens")
+        for token in article.tokens:
+            token_element = ET.SubElement(tokens_element, "token")
+            ET.SubElement(token_element, "text").text = token.text
+            ET.SubElement(token_element, "lemme").text = token.lemme
+            ET.SubElement(token_element, "pos").text = token.pos
+
+    tree = ET.ElementTree(root)
+    ET.indent(tree, space="  ")
+    tree.write(output_file, encoding="utf-8", xml_declaration=True)
+
+
+def load_xml(input_file: Path) -> list[Article]:
+    input_file = Path(input_file)
+
+    tree = ET.parse(input_file)
+    root = tree.getroot()
+
+    if root.tag != "corpus":
+        raise ValueError(f"Le fichier {input_file} n'est pas un corpus XML valide.")
+
+    corpus = []
+    for article_element in root.findall("article"):
+        categories_element = article_element.find("categories")
+        categories = []
+        if categories_element is not None:
+            categories = [
+                category.text or ""
+                for category in categories_element.findall("category")
+            ]
+
+        tokens = []
+        tokens_element = article_element.find("tokens")
+        if tokens_element is not None:
+            for token_element in tokens_element.findall("token"):
+                tokens.append(
+                    Token(
+                        text=token_element.findtext("text", default=""),
+                        lemme=token_element.findtext("lemme", default=""),
+                        pos=token_element.findtext("pos", default=""),
+                    )
+                )
+
+        corpus.append(
+            Article(
+                id=article_element.findtext("id", default=""),
+                source=article_element.findtext("source", default=""),
+                title=article_element.findtext("title", default=""),
+                content=article_element.findtext(
+                    "content",
+                    default=article_element.findtext("description", default=""),
+                ),
+                date=article_element.findtext("date", default=""),
+                categories=categories,
+                tokens=tokens,
+            )
+        )
+
+    return corpus
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Conversion d'un format à l'autre (xml, json, pickle)"
+    )
+
+    parser.add_argument(
+        "-in", "--input", choices=["xml", "json", "pickle"], required=True
+    )
+    parser.add_argument(
+        "-out", "--output", choices=["xml", "json", "pickle"], required=True
+    )
+    parser.add_argument("fichier")
+
+    args = parser.parse_args()
+
+    input_file = Path(args.fichier)
+    output_file = input_file.with_suffix(f".{args.output}")
+
+    load = {
+        "xml": load_xml,
+        "json": load_json,
+        "pickle": load_pickle,
+    }
+
+    save = {
+        "xml": save_xml,
+        "json": save_json,
+        "pickle": save_pickle,
+    }
+
+    corpus = load[args.input](input_file)
+    save[args.output](corpus, output_file)
+
+    print(f"Conversion terminée: {args.input} vers {args.output}")
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Convertir des corpus entre formats (XML, JSON, Pickle)")
-    parser.add_argument("input", type=Path, help="Fichier d'entrée")
-    parser.add_argument("output", type=Path, help="Fichier de sortie")
-    parser.add_argument(
-        "--from-format",
-        choices=["json", "pickle", "xml"],
-        required=True,
-        help="Format d'entrée",
-    )
-    parser.add_argument(
-        "--to-format",
-        choices=["json", "pickle", "xml"],
-        required=True,
-        help="Format de sortie",
-    )
-    args = parser.parse_args()
-
-    loaders = {"json": load_json, "xml": load_xml, "pickle": load_pickle}
-    savers = {"json": save_json, "xml": save_xml, "pickle": save_pickle}
-
-    try:
-        print(f"Chargement depuis {args.from_format}...", end=" ", flush=True)
-        if not args.input.exists():
-            raise FileNotFoundError(f"Le fichier {args.input} n'existe pas.")
-
-        corpus = loaders[args.from_format](args.input)
-        print(f"({len(corpus)} articles)")
-
-        print(f"Sauvegarde en {args.to_format}...", end=" ", flush=True)
-        savers[args.to_format](corpus, args.output)
-        print(f"Conversion réussie: {args.input} → {args.output}")
-
-    except FileNotFoundError as e:
-        print(f"Erreur de fichier: {e}")
-        sys.exit(1)
-    except Exception as e:
-        print(f"Une erreur inattendue est survenue: {e}")
-        sys.exit(1)
+    main()

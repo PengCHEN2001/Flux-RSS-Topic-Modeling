@@ -2,25 +2,41 @@
 # -*- coding: utf-8 -*-
 
 import argparse
-import sys
 from pathlib import Path
-import stanza
-from datastructures import Token, Article, article_analyzer, load_json, load_pickle, load_xml, save_json, save_pickle, save_xml
+
+from datastructures import (
+    Token,
+    Article,
+    load_json,
+    load_pickle,
+    load_xml,
+    save_json,
+    save_pickle,
+    save_xml,
+    article_analyzer,
+)
 
 
-#spacy
-
+# spaCy
 def analyzer_spacy(article: Article) -> Article:
     return article_analyzer(article)
 
-#stanza
+
+# stanza
 _stanza_pipeline = None
+
 
 def get_stanza_pipeline():
     global _stanza_pipeline
     if _stanza_pipeline is None:
-        _stanza_pipeline = stanza.Pipeline(lang='fr', processors='tokenize,lemma,pos', use_gpu=False)
+        import stanza
+        _stanza_pipeline = stanza.Pipeline(
+            lang="fr",
+            processors="tokenize,lemma,pos",
+            use_gpu=False,
+        )
     return _stanza_pipeline
+
 
 def analyzer_stanza(article: Article) -> Article:
     if not article.content:
@@ -34,9 +50,9 @@ def analyzer_stanza(article: Article) -> Article:
     for sentence in doc.sentences:
         for word in sentence.words:
             new_token = Token(
-                forme=word.text,
+                text=word.text,
                 lemme=word.lemma,
-                pos=word.upos
+                pos=word.upos,
             )
             enriched_tokens.append(new_token)
 
@@ -44,15 +60,17 @@ def analyzer_stanza(article: Article) -> Article:
     return article
 
 
-#trankit
+# trankit
 _trankit_pipeline = None
+
 
 def get_trankit_pipeline():
     global _trankit_pipeline
     if _trankit_pipeline is None:
         from trankit import Pipeline
-        _trankit_pipeline = Pipeline('french')
+        _trankit_pipeline = Pipeline("french")
     return _trankit_pipeline
+
 
 def analyzer_trankit(article: Article) -> Article:
     if not article.content:
@@ -61,43 +79,46 @@ def analyzer_trankit(article: Article) -> Article:
     p = get_trankit_pipeline()
     article.tokens = []
 
-    for sentence in p(article.content)['sentences']:
-        for token in sentence['tokens']:
+    for sentence in p(article.content)["sentences"]:
+        for token in sentence["tokens"]:
             tok = Token(
-                forme=token.get('text'),
-                lemme=token.get('lemma'),
-                pos=token.get('upos'),
+                text=token.get("text"),
+                lemme=token.get("lemma"),
+                pos=token.get("upos"),
             )
             article.tokens.append(tok)
+
     return article
 
 
-#main
+# main
 def main():
     parser = argparse.ArgumentParser(description="Analyse d'un corpus")
-    parser.add_argument("input",
-                        type=Path,
-                        help="Fichier corpus en entrée")
-    parser.add_argument("output",
-                        type=Path,
-                        help="Fichier corpus en sortie")
-    parser.add_argument("--from-format",
-                        choices=["json", "pickle", "xml"],
-                        required=True)
-    parser.add_argument("--to-format",
-                        choices=["json", "pickle", "xml"],
-                        required=True)
-    parser.add_argument("--analyzer",
-                        choices=["spacy", "stanza", "trankit"],
-                        required=True)
+    parser.add_argument("input", type=Path, help="Fichier corpus en entrée")
+    parser.add_argument("output", type=Path, help="Fichier corpus en sortie")
+    parser.add_argument(
+        "--from-format",
+        choices=["json", "pickle", "xml"],
+        required=True,
+    )
+    parser.add_argument(
+        "--to-format",
+        choices=["json", "pickle", "xml"],
+        required=True,
+    )
+    parser.add_argument(
+        "--analyzer",
+        choices=["spacy", "stanza", "trankit"],
+        required=True,
+    )
     args = parser.parse_args()
 
     loaders = {"json": load_json, "xml": load_xml, "pickle": load_pickle}
-    savers  = {"json": save_json, "xml": save_xml, "pickle": save_pickle}
+    savers = {"json": save_json, "xml": save_xml, "pickle": save_pickle}
     analyzers = {
         "spacy": analyzer_spacy,
         "stanza": analyzer_stanza,
-        "trankit": analyzer_trankit
+        "trankit": analyzer_trankit,
     }
 
     print(f"Chargement depuis {args.input}...")
