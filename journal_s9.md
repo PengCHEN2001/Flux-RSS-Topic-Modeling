@@ -2,10 +2,9 @@
 
 ## groupe 16 : Catalina,  Lydia, Salma
 
-# This is a Heading h1
 ## Exercice 2.1, 2.2: 
 *Ces deux exercies concerne la prise en main de l'outil lda par les trois membres du groupes individuellement.*
-###### This is a Heading h6
+
 
 ## Exercice 2.3, 2.4
 
