@@ -4,7 +4,7 @@ LDA Model
 
 Introduces Gensim's LDA model and demonstrates its use on a serialized corpus.
 """
-
+import json
 import argparse
 import logging
 from pathlib import Path
@@ -18,6 +18,9 @@ from datastructures import (
 
 from gensim.corpora import Dictionary
 from gensim.models import LdaModel, Phrases
+from dataclasses import asdict
+from nltk.stem.wordnet import WordNetLemmatizer
+from datastructures import Topic  # ajouter Topic à l'import existant
 
 logging.basicConfig(
     format="%(asctime)s : %(levelname)s : %(message)s", level=logging.INFO
@@ -80,13 +83,14 @@ def topic_modeling_lda(
     no_below: int = 2,
     no_above: float = 0.5,
     use_bigrams: bool = False,
-) -> None:
+) -> list[Topic]:
     docs = build_docs(
         corpus=corpus,
         attr=attr,
         allowed_pos=allowed_pos,
     )
-
+    lemmatizer = WordNetLemmatizer()
+    docs = [[lemmatizer.lemmatize(token) for token in doc] for doc in docs]
     if not docs:
         raise ValueError("Aucun document exploitable après filtrage.")
 
@@ -116,35 +120,33 @@ def topic_modeling_lda(
 
     eval_every = None  # Don't evaluate model perplexity, takes too much time.
 
-    model = LdaModel(
-        corpus=corpus_bow,
-        id2word=dictionary,
-        chunksize=chunksize,
-        alpha="auto",
-        eta="auto",
-        iterations=iterations,
-        num_topics=num_topics,
-        passes=passes,
-        eval_every=eval_every,
-    )
+    model = LdaModel(corpus=corpus_bow, id2word=dictionary, chunksize=chunksize, alpha="auto", eta="auto", iterations=iterations, num_topics=num_topics,passes=passes, eval_every=eval_every)
 
     top_topics = model.top_topics(corpus_bow)
+    formated_topic = []
 
-    avg_topic_coherence = sum([t[1] for t in top_topics]) / num_topics
-    print("Average topic coherence: %.4f." % avg_topic_coherence)
-
-    print("\nTopics:")
-    for i, topic in model.print_topics(num_topics=num_topics, num_words=10):
-        print(f"Topic {i}: {topic}")
+    for topic in top_topics:
+        topic_representation = [{'value': word[1], 'proba': float(word[0])} for word in topic[0]]
+        formated_topic.append(
+        Topic(
+            coherence_score=float(topic[1]),
+            topic_representation=topic_representation
+        )
+    )
+    return formated_topic
 
 
 def main():
     parser = argparse.ArgumentParser(description="Topic modeling avec LDA")
 
     parser.add_argument(
-        "input_file",
-        help="Chemin vers le fichier de corpus en entrée.",
-    )
+    "--input-file", type=Path,
+    help="Chemin vers le fichier de corpus en entrée.",
+)
+    parser.add_argument(
+    "--output-file", type=Path,
+    help="Chemin du fichier de sortie après topic modelling",
+)
     parser.add_argument(
         "-f",
         "--format",
@@ -216,7 +218,7 @@ def main():
     corpus = load_corpus_format(args.input_format, args.input_file)
     allowed_pos = set(args.pos) if args.pos else None
 
-    topic_modeling_lda(
+    topics = topic_modeling_lda(
         corpus=corpus,
         attr=args.attr,
         allowed_pos=allowed_pos,
@@ -229,6 +231,11 @@ def main():
         use_bigrams=args.bigrams,
     )
 
+    with open(args.output_file, 'w', encoding='utf-8') as f:
+        json.dump([asdict(topic) for topic in topics], f, indent=4)
+
+    avg_topic_coherence = sum([t.coherence_score for t in topics]) / args.num_topics
+    print('Average topic coherence: %.4f.' % avg_topic_coherence)
 
 if __name__ == "__main__":
     main()
