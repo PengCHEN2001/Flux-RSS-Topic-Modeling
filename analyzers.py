@@ -1,138 +1,117 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-
-import argparse
+from random import shuffle
 from pathlib import Path
+from datastructures import Token, Article, suffix2loader, suffix2writer
 
-from datastructures import (
-    Token,
-    Article,
-    load_json,
-    load_pickle,
-    load_xml,
-    save_json,
-    save_pickle,
-    save_xml,
-    article_analyzer,
-)
+import sys
 
 
-# spaCy
-def analyzer_spacy(article: Article) -> Article:
-    return article_analyzer(article)
+def load_spacy():
+    import spacy
+    return spacy.load("fr_core_news_md")
 
 
-# stanza
-_stanza_pipeline = None
+def load_stanza():
+    import stanza
+    stanza.download("fr")  # téléchargé qu'une fois, peut se commenter
+    return stanza.Pipeline("fr", processors="tokenize,pos,lemma")
 
 
-def get_stanza_pipeline():
-    global _stanza_pipeline
-    if _stanza_pipeline is None:
-        import stanza
-        _stanza_pipeline = stanza.Pipeline(
-            lang="fr",
-            processors="tokenize,lemma,pos",
-            use_gpu=False,
-        )
-    return _stanza_pipeline
+def load_trankit():
+    import trankit
+    return trankit.Pipeline('french', gpu=False)
 
 
-def analyzer_stanza(article: Article) -> Article:
-    if not article.content:
-        return article
-
-    nlp = get_stanza_pipeline()
-    doc = nlp(article.content)
-
-    enriched_tokens = []
-
-    for sentence in doc.sentences:
-        for word in sentence.words:
-            new_token = Token(
-                text=word.text,
-                lemme=word.lemma,
-                pos=word.upos,
-            )
-            enriched_tokens.append(new_token)
-
-    article.tokens = enriched_tokens
+def analyze_spacy(parser, article: Article) -> Article:
+    result = parser( (article.title or "" ) + "\n" + (article.description or ""))
+    output = []
+    for sentence in result.sents:
+        output.append([])
+        for token in sentence:
+            if token.text.strip():
+                output[-1].append(Token(token.text, token.lemma_, token.pos_))
+    article.analysis = output
     return article
 
 
-# trankit
-_trankit_pipeline = None
-
-
-def get_trankit_pipeline():
-    global _trankit_pipeline
-    if _trankit_pipeline is None:
-        from trankit import Pipeline
-        _trankit_pipeline = Pipeline("french")
-    return _trankit_pipeline
-
-
-def analyzer_trankit(article: Article) -> Article:
-    if not article.content:
-        return article
-
-    p = get_trankit_pipeline()
-    article.tokens = []
-
-    for sentence in p(article.content)["sentences"]:
-        for token in sentence["tokens"]:
-            tok = Token(
-                text=token.get("text"),
-                lemme=token.get("lemma"),
-                pos=token.get("upos"),
-            )
-            article.tokens.append(tok)
-
+def analyze_stanza(parser, article: Article) -> Article:
+    result = parser( (article.title or "" ) + "\n" + (article.description or ""))
+    output = []
+    for sent in result.sentences:
+        output.append([])
+        for token in sent.words:
+            output[-1].append(Token(token.text, token.lemma, token.upos))
+    article.analysis = output
     return article
 
 
-# main
-def main():
-    parser = argparse.ArgumentParser(description="Analyse d'un corpus")
-    parser.add_argument("input", type=Path, help="Fichier corpus en entrée")
-    parser.add_argument("output", type=Path, help="Fichier corpus en sortie")
-    parser.add_argument(
-        "--from-format",
-        choices=["json", "pickle", "xml"],
-        required=True,
-    )
-    parser.add_argument(
-        "--to-format",
-        choices=["json", "pickle", "xml"],
-        required=True,
-    )
-    parser.add_argument(
-        "--analyzer",
-        choices=["spacy", "stanza", "trankit"],
-        required=True,
-    )
-    args = parser.parse_args()
+def analyze_trankit(parser, article: Article) -> Article:
+    result = parser( (article.title or "" ) + "\n" + (article.description or ""))
+    output = []
+    for sentence in result['sentences']:
+        output.append([])
+        for token in sentence['tokens']:
+            if 'expanded' not in token.keys():
+                token['expanded'] = [token]
+            for w in token['expanded']:
+                output[-1].append(Token(w['text'], w['lemma'], w['upos']))
+    article.analysis = output
+    return article
 
-    loaders = {"json": load_json, "xml": load_xml, "pickle": load_pickle}
-    savers = {"json": save_json, "xml": save_xml, "pickle": save_pickle}
-    analyzers = {
-        "spacy": analyzer_spacy,
-        "stanza": analyzer_stanza,
-        "trankit": analyzer_trankit,
-    }
 
-    print(f"Chargement depuis {args.input}...")
-    corpus = loaders[args.from_format](args.input)
+
+name_to_analyzer = {
+    "spacy": (load_spacy, analyze_spacy),
+    "stanza": (load_stanza, analyze_stanza),
+    "trankit": (load_trankit, analyze_trankit),
+}
+
+
+def main(input_file, output_file, analyzer=None, do_shuffle=False):
+    #DEMO_HARD_LIMIT = 100 # pour faire une démonstration au besoin
+    #print(f"WARNING: this is a demo with {DEMO_HARD_LIMIT} documents only", file=sys.stderr)
+
+    input_file = Path(input_file)
+    output_file = Path(output_file)
+
+    load_corpus = suffix2loader[input_file.suffix]
+    save_corpus = suffix2writer[output_file.suffix]
+    load_model, analyze = name_to_analyzer[analyzer]
+
+    print(f"Chargement depuis {input_file}...")
+    corpus = load_corpus(input_file)
     print(f"{len(corpus)} articles chargés.")
 
-    print("Analyse en cours...")
-    corpus_analyse = [analyzers[args.analyzer](article) for article in corpus]
+    corpus = load_corpus(input_file)
+    model = load_model()
+
+    if do_shuffle:
+        indices = [9440, 7443, 6777, 4201, 27678, 8816, 13747, 21223, 16438, 14424, 29111, 16457, 11620, 1360, 18719, 23975, 27716, 24301, 31779, 26076, 24047, 6282, 17214, 30185, 30482, 11391, 29680, 15543, 5218, 26781, 27536, 28199, 28653, 20726, 28965, 7976, 17580, 18785, 13406, 10468, 13095, 30955, 1890, 6362, 27698, 19690, 30977, 182, 792, 26501, 27039, 18459, 28985, 10159, 4149, 20056, 10738, 5422, 4710, 24151, 25087, 11675, 11602, 30911, 5480, 17311, 30567, 7862, 26436, 27145, 7156, 18832, 24464, 24447, 20451, 91, 4070, 12184, 14475, 5257, 17306, 22670, 24046, 23664, 32058, 30927, 1795, 1017, 19171, 30362, 12847, 27614, 16614, 5995, 29633, 15548, 12485, 11045, 21034, 23628]
+        corpus = [corpus[idx] for idx in indices]
+    #corpus = corpus[:DEMO_HARD_LIMIT]  # commenter pour traiter tout le corpus
+    print(f"Analyse en cours avec {analyzer}...")
+    corpus = [analyze(model, item) for item in corpus]
     print("Analyse terminée.")
 
-    print(f"Sauvegarde vers {args.output}...")
-    savers[args.to_format](corpus_analyse, args.output)
+    print(f"Sauvegarde vers {output_file}...")
+    save_corpus(corpus, output_file)
     print("Fait !")
 
 
-if __name__ == "__main__":
-    main()
+
+if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("input_file", help="Input file, a serialized corpus.")
+    parser.add_argument("output_file", help="Output file")
+    parser.add_argument("-a", "--analyzer", choices=sorted(name_to_analyzer.keys()))
+    parser.add_argument("--shuffle", action="store_true")
+
+    args = parser.parse_args()
+    main(
+        input_file=args.input_file,
+        output_file=args.output_file,
+        analyzer=args.analyzer,
+        do_shuffle=args.shuffle
+    )
+

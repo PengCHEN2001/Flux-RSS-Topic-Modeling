@@ -243,14 +243,12 @@ def main() -> None:
         articles = []
         for rss_feed in corpus:
             articles.extend(read_rss(args.method, rss_feed))
-
-    if args.output_file:
-        sauvegarder_corpus_serialise(articles, args.output_format, args.output_file)
-
+    
     articles = dedoublonnage(articles)
     articles = filtrage(articles, args)
 
-    print(f"Articles trouvés : {len(articles)}\n")
+    if args.output_file:
+        sauvegarder_corpus_serialise(articles, args.output_format, args.output_file)
 
     for article in articles:
         print(f"id : {article.id}")
@@ -260,7 +258,8 @@ def main() -> None:
         print(f"date : {article.date}")
         print(f"categories : {article.categories}")
         print()
-
+        
+    print (f"Articles trouvés : {len(articles)}\n")
 
 if __name__ == "__main__":
     main()
