@@ -1,9 +1,8 @@
-## Rapport 
+## Myriam BEN HADJ SGHAIER : Rapport sur l'ensemble des fonctionnalités attendues pour les points 1 à 5 de l'exercice 2
 
 **Groupe 16** — Myriam, Peng, Hulya 
-**Date** : 6 avril 2026
 
-## Myriam BEN HADJ SGHAIER : Rapport sur l'ensemble des fonctionnalités attendues pour les points 1 à 5 de l'exercice 2
+**Date** : 6 avril 2026
 
 ## Répartition des tâches de rédaction
 
