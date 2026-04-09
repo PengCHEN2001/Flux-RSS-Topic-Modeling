@@ -245,5 +245,29 @@ python3 analyzers.py corpus_brut.json corpus_analyse.json \
 # 3. Lancer le topic modeling
 python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
   -a lemme --pos NOUN VERB ADJ --num-topics 10 --bigrams
+
+```
+# Manuel utilisateur (pour les points 6 et 7 de l'exercice 2) : 
+
+# Commandes — Exercice 2.4
+
+## 4a — Choisir entre lemmes et mot-formes (`--token`)
+
+```bash
+python run_bertopic.py -f json corpus_analyse.json --token lemma
+python run_bertopic.py -f json corpus_analyse.json --token form
+```
+
+## 4b — Filtrer les catégories grammaticales (`--pos`)
+
+```bash
+python run_bertopic.py -f json corpus_analyse.json --pos NOUN VERB
+python run_bertopic.py -f json corpus_analyse.json --pos NOUN
+```
+
+## 4c — Combiner les deux options
+
+```bash
+python run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB -o topics.html
 ```
 
