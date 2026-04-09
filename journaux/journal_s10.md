@@ -50,4 +50,96 @@ entre json, xml et pickle) ;
 
 ---
 
+# Journal de bord — 08/04/2026
+**Myriam BHS**
+
+## Objectif
+
+Générer un corpus sérialisé afin de tester le script `run_bertopic.py` de mon collègue.
+
+## 1. Constitution du corpus brut
+
+Le corpus brut a été constitué à partir des fichiers XML RSS, à l'aide du script `rss_parcours.py` avec la méthode `feedparser`. Le corpus obtenu contient **3210 articles** issus de plusieurs sources (Libération, etc.), sérialisés au format JSON.
+
+## 2. Enrichissement morphosyntaxique
+
+Le corpus a été enrichi morphosyntaxiquement grâce au script `analyzers.py` en utilisant **spaCy** (`fr_core_news_md`). Chaque article a été tokenisé et annoté en lemmes et en parties du discours (POS).
+
+## 3. Modélisation thématique par LDA
+
+Une modélisation thématique par LDA a été lancée via `run_lda.py` sur les lemmes filtrés par catégories grammaticales (`NOUN`, `VERB`, `ADJ`), avec extraction de **10 topics** et activation des bigrammes. Les résultats ont été sauvegardés dans `topics.json`.
+
+## 4. Test de `run_bertopic.py`
+
+Le script `run_bertopic.py` de mon collègue a été testé sur le corpus analysé avec la commande suivante :
+
+```bash
+python3 run_bertopic.py corpus_analyse.json -f json -o test.html --chart 2d
+```
+
+BERTopic a traité les 3210 documents et extrait 10 topics. Le modèle a téléchargé automatiquement le modèle d'embeddings multilingue `paraphrase-multilingual-MiniLM-L12-v2` de Hugging Face. La visualisation 2D a été générée avec succès et sauvegardée dans `test.html`, puis ouverte dans le navigateur.
+
+### Topics détectés (vue 2D)
+
+Les 10 topics couvrent des thèmes variés, cohérents avec un corpus de presse généraliste comme Libération :
+
+| Thème | Mots-clés |
+|---|---|
+| Politique française | Macron, budget |
+| Actualité internationale | Trump, droits de douane, Gaza |
+| Faits divers | meurtre de Louise en Essonne |
+| Sport | Marseille |
+| Société | retraites, culture |
+
+### Test avec `--chart barchart`
+
+```bash
+python3 run_bertopic.py corpus_analyse.json -f json -o test_bar.html --chart barchart
+```
+
+La visualisation en diagramme en barres a été générée avec succès. Les topics détectés sont légèrement différents de la première exécution — ce qui est normal, BERTopic comportant **une part d'aléatoire à chaque entraînement**. Les thèmes restent cohérents : sport (OM, Angers), Gaza, retraites, JO de Paris, Fashion Week, économie, IA et politique française (Macron).
+
+## Conclusion
+
+Le script `run_bertopic.py` de mon collègue fonctionne correctement sur le corpus sérialisé. Les deux types de visualisation (2D et barchart) ont été générés avec succès.
+
+# Journal de bord -- 10/04/2026
+**Myriam BHS**
+
+## Objectif
+
+Compléter l'exercice 2, point 4 sur le script `run_bertopic.py`.
+
+## Organisation git
+
+Une branche `MBHS-ex2-4s10` a été créée pour isoler le développement, afin que mon collègue puisse relire le code avant fusion :
+
+```bash
+git switch -c MBHS-ex2-4s10
+```
+
+Une fois le code testé, la branche sera fusionnée vers `main` :
+
+```bash
+git add run_bertopic.py
+git commit -m "ex2.4 : ajout options --token et --pos en ligne de commande"
+git switch main
+git merge MBHS-ex2-4s10
+```
+
+## Exercice 2.4 -- Améliorations du script
+
+Trois améliorations ont été apportées au script `run_bertopic.py` :
+
+- **4a — `--token`** : permet de choisir entre les lemmes (`lemma`) et les mot-formes (`form`)
+- **4b — `--pos`** : permet de filtrer sur les catégories grammaticales (ex : `NOUN`, `VERB`)
+- **4c** : les deux options sont disponibles en ligne de commande
+
+Exemple d'utilisation :
+
+```bash
+python run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB -o topics.html
+```
+
+Le script a été testé sur `corpus_analyse.json` (3207 documents) et fonctionne correctement.
 
