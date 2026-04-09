@@ -9,7 +9,7 @@ from pathlib import Path
 from bertopic import BERTopic
 from datastructures import suffix2loader
 
-def load_corpus(fichier: Path, format: str) -> list[str]:
+def load_corpus(fichier: Path, format: str, token_type: str = "lemma", pos_filter: list[str] | None = None) -> list[str]:
     """
     Charge et prépare le corpus pour BERTopic.
     Convertit les objets Article en une liste de chaînes de caractères.
@@ -22,9 +22,14 @@ def load_corpus(fichier: Path, format: str) -> list[str]:
     docs = []
     for article in articles:
         # Extraction basique des lemmes
+
+        # ex. 4a : choix entre lemme (t.lemma) et mot-forme (t.form)
         mots = [
-            t.lemma for sentence in article.analysis for t in sentence 
+            (t.lemma if token_type == "lemma" else t.form)
+            for sentence in article.analysis for t in sentence 
             if len(t.lemma) > 1 and not t.lemma.isnumeric()
+        # ex. 4b : filtre sur les catégories grammaticales (None = tout garder) 
+            and (pos_filter is None or t.pos in pos_filter)
         ]
         if mots:
             docs.append(" ".join(mots))
@@ -38,7 +43,7 @@ def train_bertopic_model(docs: list[str]) -> BERTopic:
     """
     print("L'entraînement du modèle BERTopic (modèle français)...")
     topic_model = BERTopic(language="french")
-    topic_model.fit_transform(docs)
+    topics, probs = topic_model.fit_transform(docs)
     return topic_model
 
 def save_viz(model: BERTopic, output_path: str, chart_type: str) -> None:
@@ -84,10 +89,20 @@ def main():
     parser.add_argument("--chart", choices=["2d", "barchart"], default="2d",
                         help="Type de visualisation (défaut: 2d). Si '2d' échoue, repli sur 'barchart'.")
 
+# <--- ex. 4c : nouvelles options en ligne de commande --->
+    # ex. 4a : --token pour choisir entre lemmes et mot-formes
+    
+    parser.add_argument("--token", choices=["lemma", "form"], default="lemma",
+                        help="Type de token : lemmes ou mot-formes (défaut: lemma)")
+    
+    # ex. 4b : --pos pour filtrer par catégories grammaticales (nargs="+" = plusieurs valeurs possibles)
+    parser.add_argument("--pos", nargs="+", default=None, metavar="CAT",
+                        help="Catégories grammaticales à conserver (ex: --pos NOUN VERB). Défaut : toutes.")
+
     args = parser.parse_args()
 
 
-    docs = load_corpus(args.input_file, args.format)
+    docs = load_corpus(args.input_file, args.format, args.token, args.pos)
 
     if not docs:
         print("Erreur : Aucun document valide trouvé. Arrêt du script.")
