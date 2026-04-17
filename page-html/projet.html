@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="projet.css" rel="stylesheet">
+
+  <style>
+    .objectif-btn {
+      width: 100%;
+      border-radius: 18px;
+      padding: 16px 18px;
+      font-weight: 600;
+      letter-spacing: .3px;
+      color: rgba(255,255,255,.95);
+      background: linear-gradient(135deg, rgba(34,197,94,.35), rgba(16,185,129,.25));
+      border: 1px solid rgba(34,197,94,.55);
+      box-shadow: 0 14px 30px rgba(0,0,0,.25);
+      transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+      text-align: center;
+    }
+    .objectif-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 44px rgba(0,0,0,.35);
+      filter: brightness(1.05);
+    }
+    .objectif-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(34,197,94,.45), 0 22px 44px rgba(0,0,0,.35);
+    }
+
+    /* carte de navigation vers une page */
+    .nav-card {
+      display: block;
+      text-decoration: none;
+      color: var(--ink);
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: var(--r2);
+      box-shadow: var(--shadow2);
+      padding: 1.4rem 1.6rem;
+      transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+    }
+    .nav-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 22px 44px rgba(0,0,0,.3);
+      filter: brightness(1.08);
+      color: var(--ink);
+    }
+    .nav-card .nav-card-icon {
+      font-size: 2rem;
+      margin-bottom: .6rem;
+      display: block;
+    }
+    .nav-card h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      margin-bottom: .3rem;
+    }
+    .nav-card p {
+      font-size: .88rem;
+      opacity: .7;
+      margin: 0;
+    }
+
+    /* pipeline steps */
+    .pipeline-step {
+      display: flex;
+      align-items: flex-start;
+      gap: 1rem;
+      padding: .9rem 0;
+      border-bottom: 1px solid rgba(255,248,220,.1);
+    }
+    .pipeline-step:last-child { border-bottom: none; }
+    .step-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 32px;
+      height: 32px;
+      border-radius: 10px;
+      background: rgba(34,197,94,.15);
+      border: 1px solid rgba(34,197,94,.35);
+      font-size: .82rem;
+      font-weight: 800;
+      color: rgba(34,197,94,.9);
+      flex-shrink: 0;
+    }
+    .step-body strong { font-size: .95rem; }
+    .step-body p { font-size: .87rem; opacity: .7; margin: .1rem 0 0; }
+
+    .hero h1, .hero p,
+    section > .modern-card > h2,
+    section h2 { text-align: center; }
+  </style>
+</head>
+
+<body class="corps">
+  <div class="wow-bg" aria-hidden="true"></div>
+
+  <header class="py-3">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+      <h4 class="m-0"><em>PPE2 2026</em></h4>
+      <span class="badge-soft">Accueil</span>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark mt-3">
+      <div class="container">
+        <a class="navbar-brand fw-semibold" href="index.html">Rendu final | Projet de Programmation Encadré</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link active" aria-current="page" href="projet.html">Accueil</a></li>
+            <li class="nav-item"><a class="nav-link" href="journal.html">Journal</a></li>
+            <li class="nav-item"><a class="nav-link" href="manuel.html">Manuel</a></li>
+            <li class="nav-item"><a class="nav-link" href="rapport.html">Rapport</a></li>
+            <li class="nav-item"><a class="nav-link" href="bertopic.html">BERTopic</a></li>
+            <li class="nav-item"><a class="nav-link" href="objectifs.html">À propos</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container py-4">
+
+    <!-- HERO -->
+    <section class="hero mb-4 reveal">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="hero-content p-4 p-md-5">
+        <div class="glass p-3 p-md-4">
+          <h1 class="h3 mb-1"><strong>Projet de Programmation Encadré</strong></h1>
+          <p class="mb-3">Pipeline sur corpus RSS // Master pluriTAL · Groupe 16</p>
+          <div class="d-flex flex-wrap gap-2">
+            <span class="badge-soft">Python 3.10+</span>
+            <span class="badge-soft">spaCy · Stanza</span>
+            <span class="badge-soft">LDA · BERTopic</span>
+            <span class="badge-soft">RSS · JSON · XML</span>
+            <span class="badge-soft">Groupe 15</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRÉSENTATION -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-4 p-md-5">
+        <h2 class="h4 mb-3"><strong>Le projet</strong></h2>
+        <p style="opacity:.9; line-height:1.7;">
+          Ce projet s'inscrit dans le cadre du cours de <strong>Projet de Programmation Encadré (PPE)</strong> du master <strong>pluriTAL</strong>.
+          Il a pour objectif la construction d'une chaîne de traitement NLP complète sur des corpus de flux RSS en français :
+          collecte, filtrage, sérialisation, analyse morphosyntaxique et modélisation thématique.
+        </p>
+        <p style="opacity:.9; line-height:1.7; margin-bottom:0;">
+          Pour le rendu final, nous avons intégré <strong>BERTopic</strong> comme alternative à la LDA,
+          avec des options de filtrage par catégorie grammaticale et choix entre lemmes et mots-formes.
+        </p>
+      </div>
+    </section>
+
+    <!-- NAVIGATION VERS LES PAGES -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-3 p-md-4">
+        <h2 class="h4 mb-3"><strong>Accès rapide</strong></h2>
+        <div class="row g-3">
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <a class="nav-card h-100" href="journal.html">
+              <h3>Journal</h3>
+              <p>Suivi hebdomadaire des séances et contributions individuelles.</p>
+            </a>
+          </div>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <a class="nav-card h-100" href="manuel.html">
+              <h3>Manuel</h3>
+              <p>Guide d'utilisation pas à pas des scripts, points 1 à 7.</p>
+            </a>
+          </div>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <a class="nav-card h-100" href="rapport.html">
+              <h3>Rapport</h3>
+              <p>Documentation technique et analyse des résultats.</p>
+            </a>
+          </div>
+
+          <div class="col-12 col-sm-6 col-lg-3">
+            <a class="nav-card h-100" href="objectifs.html">
+              <h3>À propos</h3>
+              <p>Équipe, rôles et cadre académique du projet.</p>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- PIPELINE -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-3 p-md-4">
+
+        <button class="objectif-btn" type="button"
+          data-bs-toggle="collapse" data-bs-target="#pipelinePanel"
+          aria-expanded="false" aria-controls="pipelinePanel">
+          Pipeline NLP // vue d'ensemble
+        </button>
+
+        <div class="collapse mt-4" id="pipelinePanel">
+          <div class="pipeline-step">
+            <span class="step-num">1</span>
+            <div class="step-body">
+              <strong>Lecture des flux RSS</strong> — <code style="font-size:.85em; background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22); border-radius:6px; padding:.05em .35em;">rss_reader.py</code>
+              <p>Lit un fichier XML RSS avec trois méthodes : <code style="font-size:.85em; background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22); border-radius:6px; padding:.05em .35em;">re</code>, <code style="font-size:.85em; background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22); border-radius:6px; padding:.05em .35em;">etree</code>, <code style="font-size:.85em; background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22); border-radius:6px; padding:.05em .35em;">feedparser</code>.</p>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <span class="step-num">2</span>
+            <div class="step-body">
+              <strong>Parcours et filtrage du corpus</strong> — <code style="font-size:.85em; background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22); border-radius:6px; padding:.05em .35em;">rss_parcours.py</code>
+              <p>Parcourt un dossier entier, filtre par date, source ou catégorie, et sérialise le corpus.</p>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <span class="step-num">3</span>
+            <div class="step-body">
+              <strong>Conversion entre formats</strong> — <code style="font-size:.85em; background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22); border-radius:6px; padding:.05em .35em;">datastructures.py</code>
+              <p>Convertit entre JSON, Pickle et XML.</p>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <span class="step-num">4</span>
+            <div class="step-body">
+              <strong>Analyse morphosyntaxique</strong> — <code style="font-size:.85em; background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22); border-radius:6px; padding:.05em .35em;">analyzers.py</code>
+              <p>Enrichit chaque article avec des tokens (forme, lemme, POS) via spaCy, Stanza ou Trankit.</p>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <span class="step-num">5</span>
+            <div class="step-body">
+              <strong>Topic modeling LDA</strong> — <code style="font-size:.85em; background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22); border-radius:6px; padding:.05em .35em;">run_lda.py</code>
+              <p>Modélisation thématique avec Gensim, filtrage POS, bigrammes, paramétrage complet.</p>
+            </div>
+          </div>
+          <div class="pipeline-step">
+            <span class="step-num">6–7</span>
+            <div class="step-body">
+              <strong>Topic modeling BERTopic</strong> — <code style="font-size:.85em; background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22); border-radius:6px; padding:.05em .35em;">run_bertopic.py</code>
+              <p>Alternative neuronale à LDA, avec options <code style="font-size:.85em; background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22); border-radius:6px; padding:.05em .35em;">--token</code> et <code style="font-size:.85em; background:rgba(34,197,94,.12); border:1px solid rgba(34,197,94,.22); border-radius:6px; padding:.05em .35em;">--pos</code>, visualisation HTML.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ÉQUIPE -->
+    <section class="reveal">
+      <div class="modern-card p-4 p-md-5">
+        <h2 class="h4 mb-3"><strong>Membres du groupe</strong></h2>
+        <div class="row g-3">
+          <div class="col-12 col-lg-4">
+            <div class="modern-card p-4 h-100">
+              <p class="mb-1"><strong>Myriam</strong></p>
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="modern-card p-4 h-100">
+              <p class="mb-1"><strong>Peng</strong></p>
+
+            </div>
+          </div>
+          <div class="col-12 col-lg-4">
+            <div class="modern-card p-4 h-100">
+              <p class="mb-1"><strong>Hulya</strong></p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <button class="to-top" id="toTop" aria-label="Remonter en haut">↑</button>
+  <footer class="footer">PPE • 2026</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/ppe.js"></script>
+</body>
+</html>

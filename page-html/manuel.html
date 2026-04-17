@@ -1,0 +1,415 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Manuel | Projet de Programmation Encadré</title>
+
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="projet.css" rel="stylesheet">
+
+  <style>
+    .objectif-btn {
+      width: 100%;
+      border-radius: 18px;
+      padding: 16px 18px;
+      font-weight: 600;
+      letter-spacing: .3px;
+      color: rgba(255,255,255,.95);
+      background: linear-gradient(135deg, rgba(34,197,94,.35), rgba(16,185,129,.25));
+      border: 1px solid rgba(34,197,94,.55);
+      box-shadow: 0 14px 30px rgba(0,0,0,.25);
+      transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
+      text-align: center;
+    }
+    .objectif-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 22px 44px rgba(0,0,0,.35);
+      filter: brightness(1.05);
+    }
+    .objectif-btn:focus-visible {
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(34,197,94,.45), 0 22px 44px rgba(0,0,0,.35);
+    }
+    .objectif-body p { color: rgba(255,255,255,.9); }
+
+    .hero h1,
+    .hero p,
+    section > .modern-card > h2,
+    section h2 {
+      text-align: center;
+    }
+
+    /* blocs de code */
+    .md-code {
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,248,220,.12);
+      border-radius: 10px;
+      padding: .9rem 1.1rem;
+      overflow-x: auto;
+      margin: .6rem 0 1rem;
+    }
+    .md-code code {
+      font-family: "JetBrains Mono","Fira Code",monospace;
+      font-size: .85em;
+      color: rgba(255,248,220,.9);
+      white-space: pre;
+    }
+    /* inline code */
+    .md-body code {
+      background: rgba(255,248,220,.1);
+      border: 1px solid rgba(255,248,220,.14);
+      border-radius: 5px;
+      padding: .1em .4em;
+      font-size: .88em;
+      font-family: "JetBrains Mono","Fira Code",monospace;
+      color: rgba(255,248,220,.95);
+    }
+    .md-body p  { font-size: .95rem; margin-bottom: .5rem; }
+    .md-body ul { font-size: .95rem; padding-left: 1.3rem; margin-bottom: .5rem; }
+    .md-body li { margin-bottom: .15rem; }
+    .md-body h3 {
+      font-size: .97rem;
+      font-weight: 700;
+      margin-top: 1.2rem;
+      margin-bottom: .25rem;
+    }
+
+    /* note / warning */
+    .note-box {
+      border-left: 3px solid rgba(255,248,220,.35);
+      background: rgba(255,248,220,.04);
+      border-radius: 0 8px 8px 0;
+      padding: .5rem .9rem;
+      margin: .4rem 0 .8rem;
+      font-size: .88rem;
+      opacity: .85;
+    }
+    .note-box.warn {
+      border-left-color: rgba(251,191,36,.6);
+      background: rgba(251,191,36,.05);
+    }
+
+    /* numéro de script */
+    .script-num {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      background: rgba(255,248,220,.1);
+      border: 1px solid rgba(255,248,220,.2);
+      font-size: .8rem;
+      font-weight: 800;
+      padding: 0 6px;
+      flex-shrink: 0;
+    }
+  </style>
+</head>
+
+<body class="corps">
+  <div class="wow-bg" aria-hidden="true"></div>
+
+  <header class="py-3">
+    <div class="container d-flex align-items-center justify-content-between gap-3">
+      <h4 class="m-0"><em>PPE2 2026</em></h4>
+      <span class="badge-soft">Manuel</span>
+    </div>
+
+    <nav class="navbar navbar-expand-lg navbar-dark mt-3">
+      <div class="container">
+        <a class="navbar-brand fw-semibold" href="index.html">Rendu final | Projet de Programmation Encadré</a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mainNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item"><a class="nav-link" href="projet.html">Accueil</a></li>
+            <li class="nav-item"><a class="nav-link" href="journal.html">Journal</a></li>
+            <li class="nav-item"><a class="nav-link active" aria-current="page" href="manuel.html">Manuel</a></li>
+            <li class="nav-item"><a class="nav-link" href="rapport.html">Rapport</a></li>
+            <li class="nav-item"><a class="nav-link" href="bertopic.html">BERTopic</a></li>
+            <li class="nav-item"><a class="nav-link" href="objectifs.html">À propos</a></li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+  </header>
+
+  <main class="container py-4">
+
+    <!-- HERO -->
+    <section class="hero mb-4 reveal">
+      <div class="hero-bg" aria-hidden="true"></div>
+      <div class="hero-content p-4 p-md-5">
+        <div class="glass p-3 p-md-4">
+          <h1 class="h3 mb-1"><strong>Manuel utilisateur</strong></h1>
+          <p class="mb-0">Pipeline NLP complète // Exercice 2, points 1 à 7.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRÉREQUIS -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-4 p-md-5 md-body">
+        <h2 class="h4 mb-3"><strong>Prérequis</strong></h2>
+        <ul>
+          <li>Python 3.10+</li>
+          <li>Modules : <code>spacy</code>, <code>stanza</code>, <code>feedparser</code>, <code>python-dateutil</code>, <code>gensim</code>, <code>nltk</code></li>
+          <li>Modèle spaCy français : <code>python3 -m spacy download fr_core_news_sm</code></li>
+          <li>Les fichiers XML RSS sont stockés dans votre dossier de corpus</li>
+        </ul>
+        <div class="note-box">
+          <strong>Note :</strong> les chemins contenant des espaces doivent être entourés de guillemets.<br>
+          Exemple : <code>"../2026/02/10/Blast -- articles.xml"</code>
+        </div>
+      </div>
+    </section>
+
+    <!-- SCRIPTS 1–5 -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-3 p-md-4">
+
+        <!-- btn collapsible -->
+        <button class="objectif-btn" type="button"
+          data-bs-toggle="collapse" data-bs-target="#panel15"
+          aria-expanded="false" aria-controls="panel15">
+          Scripts // Points 1 à 5
+        </button>
+
+        <div class="collapse mt-4 objectif-body" id="panel15">
+
+          <!-- 1 -->
+          <div class="modern-card p-4 mb-3 md-body">
+            <h3 class="d-flex align-items-center gap-2 mb-1">
+              <span class="script-num">1</span>
+              Lire un flux RSS // <code>rss_reader.py</code>
+            </h3>
+            <p class="small-muted mb-3">Lit un seul fichier XML RSS et affiche les articles dans le terminal.</p>
+            <p>Trois méthodes disponibles : <code>re</code>, <code>etree</code>, <code>feedparser</code>.</p>
+            <div class="md-code"><code>python3 rss_reader.py fichier.xml -r re
+python3 rss_reader.py fichier.xml -r etree
+python3 rss_reader.py fichier.xml -r feedparser</code></div>
+            <h3>Exemple concret</h3>
+            <div class="md-code"><code>python3 rss_reader.py ~/RSS_doc/2026/02/10/Blast--articles.xml -r feedparser</code></div>
+            <h3>Chemins avec espaces ou caractères spéciaux</h3>
+            <div class="md-code"><code>python3 rss_reader.py ~/RSS_doc/2026/02/10/mar.10\:26/Flux\ RSS\ -\ BFM\ BUSINESS.xml -r etree</code></div>
+          </div>
+
+          <!-- 2 -->
+          <div class="modern-card p-4 mb-3 md-body">
+            <h3 class="d-flex align-items-center gap-2 mb-1">
+              <span class="script-num">2</span>
+              Parcourir un corpus et filtrer // <code>rss_parcours.py</code>
+            </h3>
+            <p class="small-muted mb-3">Parcourt un dossier entier de fichiers XML, applique des filtres, et peut sauvegarder le résultat.</p>
+
+            <h3>Utilisation de base</h3>
+            <div class="md-code"><code>python3 rss_parcours.py -c /chemin/vers/dossier/ -m feedparser</code></div>
+
+            <h3>Choix du walker (<code>-w</code>)</h3>
+            <div class="md-code"><code>python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -w glob      # par défaut
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -w os
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -w pathlib</code></div>
+
+            <h3>Filtrer par date (<code>--start</code>, <code>--end</code>)</h3>
+            <div class="md-code"><code>python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --start "2024-01-01"
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --end "2024-12-31"
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --start "2024-01-01" --end "2024-12-31"</code></div>
+
+            <h3>Filtrer par source (<code>-s</code>)</h3>
+            <div class="note-box">
+              La source correspond au chemin complet du fichier XML. Utiliser une sous-chaîne.<br>
+              Exemple : <code>-s "Lib"</code> pour Libération, <code>-s "Blast"</code> pour Blast.
+            </div>
+            <div class="md-code"><code>python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -s Blast
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -s Lib
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -s Blast Lib</code></div>
+
+            <h3>Filtrer par catégorie (<code>-cat</code>)</h3>
+            <div class="note-box warn">
+              Fonctionne uniquement avec <code>-m etree</code> ou <code>-m re</code>. Avec <code>feedparser</code>, les catégories ne sont pas extraites sur certains corpus.<br>
+              La casse est importante : <code>Sport</code> et non <code>sport</code>.
+            </div>
+            <div class="md-code"><code>python3 rss_parcours.py -c ~/RSS_doc/ -m etree -cat Sport
+python3 rss_parcours.py -c ~/RSS_doc/ -m etree -cat Politique
+python3 rss_parcours.py -c ~/RSS_doc/ -m etree -cat Sport Politique</code></div>
+
+            <h3>Sauvegarder le corpus (<code>--output-file</code>, <code>--output-format</code>)</h3>
+            <div class="note-box">Le format pickle génère l'extension <code>.pickle</code> (et non <code>.pkl</code>).</div>
+            <div class="md-code"><code>python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.json    --output-format json
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.pickle  --output-format pickle
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.xml     --output-format xml</code></div>
+
+            <h3>Charger depuis un corpus déjà sérialisé</h3>
+            <div class="md-code"><code>python3 rss_parcours.py --input-file corpus.json    --input-format json
+python3 rss_parcours.py --input-file corpus.pickle  --input-format pickle</code></div>
+
+            <h3>Combinaisons</h3>
+            <div class="md-code"><code># Charger un corpus sérialisé et filtrer par source
+python3 rss_parcours.py --input-file corpus.json --input-format json -s lemonde
+
+# Parcourir, filtrer et sauvegarder en une commande
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -w glob \
+  --start "2024-01-01" -s blast -cat politique \
+  --output-file corpus_filtre.json --output-format json</code></div>
+          </div>
+
+          <!-- 3 -->
+          <div class="modern-card p-4 mb-3 md-body">
+            <h3 class="d-flex align-items-center gap-2 mb-1">
+              <span class="script-num">3</span>
+              Convertir entre formats — <code>datastructures.py</code>
+            </h3>
+            <p class="small-muted mb-3">Convertit un corpus sérialisé d'un format vers un autre. Formats : <code>json</code>, <code>pickle</code>, <code>xml</code>.</p>
+            <div class="md-code"><code>python3 datastructures.py -in json    -out pickle  corpus.json
+python3 datastructures.py -in json    -out xml     corpus.json
+python3 datastructures.py -in pickle  -out json    corpus.pickle
+python3 datastructures.py -in pickle  -out xml     corpus.pickle
+python3 datastructures.py -in xml     -out json    corpus.xml
+python3 datastructures.py -in xml     -out pickle  corpus.xml</code></div>
+            <div class="note-box">Le fichier de sortie est créé automatiquement dans le même dossier avec la nouvelle extension.</div>
+          </div>
+
+          <!-- 4 -->
+          <div class="modern-card p-4 mb-3 md-body">
+            <h3 class="d-flex align-items-center gap-2 mb-1">
+              <span class="script-num">4</span>
+              Analyser morphosyntaxiquement — <code>analyzers.py</code>
+            </h3>
+            <p class="small-muted mb-3">Enrichit chaque article avec des tokens (forme, lemme, POS). Analyseurs disponibles : <code>spacy</code>, <code>stanza</code>, <code>trankit</code>.</p>
+
+            <h3>Syntaxe générale</h3>
+            <div class="md-code"><code>python3 analyzers.py &lt;input&gt; &lt;output&gt; --from-format &lt;format&gt; --to-format &lt;format&gt; --analyzer &lt;outil&gt;</code></div>
+
+            <h3>Avec spaCy</h3>
+            <div class="md-code"><code>python3 analyzers.py corpus.json  corpus_analyse.json  --from-format json    --to-format json    --analyzer spacy
+python3 analyzers.py corpus.pkl   corpus_analyse.pkl   --from-format pickle  --to-format pickle  --analyzer spacy
+python3 analyzers.py corpus.pkl   corpus_analyse.json  --from-format pickle  --to-format json    --analyzer spacy</code></div>
+
+            <h3>Avec Stanza</h3>
+            <div class="md-code"><code>python3 analyzers.py corpus.json corpus_analyse.json --from-format json --to-format json --analyzer stanza</code></div>
+            <div class="note-box warn">Stanza est très gourmand en mémoire. Pour les grands corpus, traiter par lots de 500 articles maximum.</div>
+
+            <h3>Avec Trankit</h3>
+            <div class="md-code"><code>python3 analyzers.py corpus.json corpus_analyse.json --from-format json --to-format json --analyzer trankit</code></div>
+            <div class="note-box warn">Trankit nécessite Python 3.10 et le serveur de modèles doit être accessible. Non installable sur Apple Silicon dans les conditions standards.</div>
+
+            <h3>Pipeline complète : de XML brut à corpus analysé</h3>
+            <div class="md-code"><code># Étape 1 : construire le corpus
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.json --output-format json
+
+# Étape 2 : analyser
+python3 analyzers.py corpus.json corpus_analyse.json --from-format json --to-format json --analyzer spacy</code></div>
+          </div>
+
+          <!-- 5 -->
+          <div class="modern-card p-4 mb-1 md-body">
+            <h3 class="d-flex align-items-center gap-2 mb-1">
+              <span class="script-num">5</span>
+              Topic modeling LDA — <code>run_lda.py</code>
+            </h3>
+            <p class="small-muted mb-3">Modélisation thématique sur un corpus déjà analysé (tokens requis).</p>
+
+            <h3>Syntaxe minimale</h3>
+            <div class="md-code"><code>python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json</code></div>
+
+            <h3>Toutes les options</h3>
+            <div class="md-code"><code>python3 run_lda.py \
+  --input-file corpus_analyse.json \   # corpus en entrée (avec tokens)
+  --output-file topics.json \          # fichier de sortie JSON
+  -f json \                            # format : json, pickle ou xml (défaut : json)
+  -a lemme \                           # attribut : "lemme" ou "text" (défaut : lemme)
+  --pos NOUN VERB ADJ \                # filtrer par catégories grammaticales
+  --num-topics 10 \                    # nombre de topics (défaut : 10)
+  --passes 20 \                        # tours d'entraînement (défaut : 20)
+  --iterations 400 \                   # itérations internes (défaut : 400)
+  --no-below 2 \                       # supprimer termes &lt; N documents (défaut : 2)
+  --no-above 0.5 \                     # supprimer termes &gt; X% des docs (défaut : 0.5)
+  --bigrams                            # activer les bigrammes</code></div>
+
+            <h3>Exemples</h3>
+            <div class="md-code"><code># Sur les lemmes, nouns et verbes seulement, 15 topics
+python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
+  -a lemme --pos NOUN VERB --num-topics 15
+
+# Depuis un pickle, sortie JSON, avec bigrammes
+python3 run_lda.py --input-file corpus_analyse.pickle --output-file topics.json \
+  -f pickle --bigrams
+
+# Mots-formes (non lemmatisés), tous POS
+python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
+  -a text --num-topics 5 --passes 10</code></div>
+
+            <h3>Format de la sortie</h3>
+            <p>La sortie est un fichier JSON contenant une liste de topics, chacun avec :</p>
+            <ul>
+              <li><code>coherence_score</code> : score de cohérence du topic</li>
+              <li><code>topic_representation</code> : liste de mots avec leur probabilité (<code>value</code>, <code>proba</code>)</li>
+            </ul>
+
+            <h3>Pipeline complète de bout en bout</h3>
+            <div class="md-code"><code># 1. Collecter le corpus depuis les XML
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -w glob \
+  --output-file corpus_brut.json --output-format json
+
+# 2. Analyser morphosyntaxiquement
+python3 analyzers.py corpus_brut.json corpus_analyse.json \
+  --from-format json --to-format json --analyzer spacy
+
+# 3. Lancer le topic modeling
+python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
+  -a lemme --pos NOUN VERB ADJ --num-topics 10 --bigrams</code></div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- SCRIPTS 6–7 -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-3 p-md-4">
+
+        <button class="objectif-btn" type="button"
+          data-bs-toggle="collapse" data-bs-target="#panel67"
+          aria-expanded="false" aria-controls="panel67">
+          Scripts // Points 6 et 7
+        </button>
+
+        <div class="collapse mt-4 objectif-body" id="panel67">
+
+          <div class="modern-card p-4 mb-1 md-body">
+            <h3 class="d-flex align-items-center gap-2 mb-1">
+              <span class="script-num">6–7</span>
+              Topic modeling BERTopic — <code>run_bertopic.py</code>
+            </h3>
+            <p class="small-muted mb-3">Commandes pour l'exercice 2.4.</p>
+
+            <h3>4a — Choisir entre lemmes et mot-formes (<code>--token</code>)</h3>
+            <div class="md-code"><code>python run_bertopic.py -f json corpus_analyse.json --token lemma
+python run_bertopic.py -f json corpus_analyse.json --token form</code></div>
+
+            <h3>4b — Filtrer les catégories grammaticales (<code>--pos</code>)</h3>
+            <div class="md-code"><code>python run_bertopic.py -f json corpus_analyse.json --pos NOUN VERB
+python run_bertopic.py -f json corpus_analyse.json --pos NOUN</code></div>
+
+            <h3>4c — Combiner les deux options</h3>
+            <div class="md-code"><code>python run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB -o topics.html</code></div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <button class="to-top" id="toTop" aria-label="Remonter en haut">↑</button>
+  <footer class="footer">PPE • 2026</footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="assets/js/ppe.js"></script>
+</body>
+</html>
