@@ -279,13 +279,12 @@ def print_topic_coherence(corpus: BoWCorpus, model: LdaModel) -> None:
     pprint(top_topics)
 
 
-def save_html_viz(
-    output: Path, lda: LdaModel, corpus: BoWCorpus, dictionary: Dictionary
-) -> None:
+def save_html_viz(output: Path, lda: LdaModel, corpus: BoWCorpus, dictionary: Dictionary) -> None:
     """Dump pyLDAvis HTML visualization to disk"""
 
     vis_data = ldavis.prepare(lda, corpus, dictionary)
     save_html(vis_data, output.as_posix())
+    print(f"Succès : Visualisation sauvegardée dans '{output}'")
 
 
 ###############################################################################
@@ -395,7 +394,11 @@ def main():
         type=int,
         help="Log perplexity is estimated every that many updates. Setting this to one slows down training by ~2x",
     )
-    parser.add_argument("-o", "--output", type=Path, help="Save an HTML visualization")
+    parser.add_argument(
+        "-c", "--chart", 
+        type=Path, 
+        help="Chemin et nom du fichier pour sauvegarder la visualisation HTML (ex: lda_viz.html)"
+    )
 
     args = parser.parse_args()
 
@@ -426,8 +429,9 @@ def main():
 
     # Display raw results
     print_topic_coherence(corpus, model)
-    if args.output:
-        save_html_viz(args.output, model, corpus, dictionary)
+    if args.chart:
+        save_html_viz(args.chart, model, corpus, dictionary)
+
 
 
 UPOS = frozenset(
