@@ -1,12 +1,12 @@
-## Myriam BEN HADJ SGHAIER : Rapport sur l'ensemble des fonctionnalités attendues pour les points 1 à 5 de l'exercice 2
-
-**Groupe 16** — Myriam, Peng, Hulya (absente)
-
-**Date** : 6 avril 2026
+# Rapport du rendu fina
+**Groupe 16** — Myriam, Peng CHEN, Hulya (absente)
 
 ## Répartition des tâches et conventions 
-
-Ce rapport a été rédigé après test effectif par Myriam BHS (points 1 à 5) de l'ensemble de la pipeline sur un corpus RSS personnel (`donnees/`). Chaque point a été testé individuellement et les résultats observés sont décrits ci-dessous.
+- Myriam est responsable des tests sur le code précédent pour la feuille Rendu final (exercice 2, points 1 à 5) à partir du corpus RSS personnel.
+- En fonction du rapport de Myriam et de ses propres tests, Peng apporte les modifications nécessaires au code, puis effectue de nouveaux tests sur le code modifié.
+- Peng est responsable de l'exo 2.3 de la feuille BERTopic.
+- Myriam est responsable de l'exo 2.4 de de la feuille BERTopic.
+- Peng est responsable des visualisations BERTopic et LDA.
 
 **Les membres du groupe se sont organisés de la manière suivante :**
 - Répartition des points par exercice 
@@ -16,8 +16,15 @@ Ce rapport a été rédigé après test effectif par Myriam BHS (points 1 à 5) 
 - Chacun relit le code de l'autre et crée un tag ex-relu après la relecture.
 - Une fois la fiche terminée et le code relu, la personne ayant fait les derniers exercices se charge de merge vers le main et de créer le tag de fin de la fiche.
 
-## Point 1| Lire un flux RSS unique (re, etree, feedparser)
 
+
+## Myriam BEN HADJ SGHAIER : Rapport sur l'ensemble des fonctionnalités attendues pour les points 1 à 5 de l'exercice 2
+**Date** : 6 avril 2026
+
+Cette partie du rapport a été rédigé après test effectif par Myriam BHS (points 1 à 5) de l'ensemble de la pipeline sur un corpus RSS personnel (`donnees/`). Chaque point a été testé individuellement et les résultats observés sont décrits ci-dessous.
+
+### Point 1| Lire un flux RSS unique (re, etree, feedparser)
+---
 **Attendu** : le script `rss_reader.py` doit pouvoir lire un fichier XML RSS selon trois méthodes au choix : expressions régulières (`re`), parsing XML (`etree`) et bibliothèque dédiée (`feedparser`). Pour chaque article, les champs suivants doivent être extraits : identifiant, source, titre, contenu, date, catégories.
 
 **Obtenu** : les trois méthodes sont implémentées et fonctionnelles. La commande `-r` permet de sélectionner la méthode. Les articles sont correctement extraits avec tous les champs attendus.
@@ -26,8 +33,8 @@ Une différence de comportement est à noter avec `re`, le champ contenu s'affic
 
 **Conclusion** : objectif atteint ici.
 
-## Point 2 | Parcourir une arborescence et appliquer des filtres
-
+### Point 2 | Parcourir une arborescence et appliquer des filtres
+---
 **Attendu** : le script `rss_parcours.py` doit parcourir un dossier contenant des fichiers XML RSS selon trois méthodes (`os`, `pathlib`, `glob`), puis permettre de filtrer les articles par date (`--start`, `--end`), par source (`-s`) et par catégorie (`-cat`). Il doit également permettre de sauvegarder et de charger un corpus sérialisé.
 
 **Obtenu** : le parcours d'arborescence fonctionne avec les trois walkers. La sérialisation et la désérialisation sont opérationnelles. Les filtres par date et par source fonctionnent correctement.
@@ -42,8 +49,8 @@ Deux points de vigilance ont été identifiés lors des tests :
 
 **Conclusion** : objectif majoritairement atteint. Les filtres par date et source fonctionnent. Le filtre par catégorie est conditionné au choix de la méthode et à la casse. Ces limitations ne constituent pas des bugs mais des comportements à impérativement documenter. 
 
-## Point 3 | Sérialiser et désérialiser selon trois formats
-
+### Point 3 | Sérialiser et désérialiser selon trois formats
+----
 **Attendu** : le script `datastructures.py` doit permettre de convertir un corpus entre les formats `json`, `pickle` et `xml` dans les deux sens.
 
 **Obtenu** : les six conversions possibles ont été testées et fonctionnent toutes correctement. Les dataclasses `Article` et `Token` sont correctement sérialisées et reconstruites.
@@ -52,7 +59,8 @@ Un point mineur : l'extension générée pour le format pickle est `.pickle` et 
 
 **Conclusion** : objectif atteint. 
 
-## Point 4 | Analyse morphosyntaxique (spaCy, stanza, trankit)
+### Point 4 | Analyse morphosyntaxique (spaCy, stanza, trankit)
+-----
 
 **Attendu** : le script `analyzers.py` doit enrichir les articles du corpus avec une analyse morphosyntaxique (forme, lemme, POS) en utilisant au choix spaCy, stanza ou trankit.
 
@@ -66,7 +74,8 @@ Un point mineur : l'extension générée pour le format pickle est `.pickle` et 
 
 **Conclusion** : objectif atteint pour spaCy et stanza. Trankit est implémenté mais non testable en raison d'un problème idépendant du code.
 
-## Point 5 | Topic modeling LDA (gensim)
+### Point 5 | Topic modeling LDA (gensim)
+---
 
 **Attendu** : le script `run_lda.py` doit effectuer une modélisation thématique LDA sur un corpus préalablement analysé, avec des options configurables (nombre de topics, passes, filtrage POS, bigrammes, etc.) et produire une sortie JSON structurée.
 
@@ -80,8 +89,8 @@ La sortie JSON est bien structurée avec `coherence_score` et `topic_representat
 
 **Conclusion** : objectif atteint. 
 
-## Bilan général
-
+### Bilan général
+---
 | Point | Objectif | Statut |
 |-------|----------|--------|
 | 1 | Lecture RSS (re, etree, feedparser) | OK |
@@ -92,30 +101,42 @@ La sortie JSON est bien structurée avec `coherence_score` et `topic_representat
 
 Le rapport actuel couvre l'ensemble des fonctionnalités attendues pour les points 1 à 5. Les limitations identifiées (comportement du filtre source, catégories avec feedparser, trankit) ne constituent pas un bug bloquant.
 
-## Points d'amélioration suggérés
+### Points d'amélioration suggérés
 
 - Normaliser la valeur du champ `source` pour n'afficher que le nom du fichier et non le chemin complet, ce qui rendrait le filtre `-s` plus intuitif.
 - Ajouter un avertissement explicite lorsque feedparser ne récupère pas de catégories, plutôt que de retourner silencieusement une liste vide.
 - Documenter l'extension `.pickle` générée par le format pickle dans les messages d'aide des scripts.
 
 
-############### PENG ################ EX 2 POINTS 1, 2, 3a, b
+## Peng CHEN: Rapport sur la modification du code précédent, le test du code modifié
+Sur la base du rapport de tests de Myriam sur le code précédent, j’ai effectué certaines modifications ainsi que de nouveaux tests. 
+### Modifications apportées :
+- `reader.py (la methode feedparser) `：Le champ source utilisait auparavant le chemin complet du fichier, ce qui créait des incohérences. Il a été remplacé par le nom du fichier uniquement (Path(...).name) afin d’uniformiser les sources.
+- `rss_parcours.py `: J’ai corrigé le filtrage des articles en rendant la gestion des dates plus stricte (suppression des dates absentes ou invalides) et en remplaçant la logique de catégories par une logique OR. Cela permet de conserver un article s’il correspond à au moins une catégorie. conformément à la logique du code de correction fourni par les professeurs.
+- `Analyzers.py, datastructures.py et run_lda.py `: J’ai repris et restructuré une grande partie du code. En m’inspirant du style de la correction fournie par le professeur, j’ai supprimé du code et des classes superflus afin de rendre l’architecture plus claire et lisible.
+- `datastructure.py`, dans la classe Article, le champ token était utilisé comme clé, avec un type limité à list[Token]. J’ai modifié cette structure pour adopter une représentation plus adaptée —— analysis: list[list[Token]] = field(default_factory=list) Cela a nécessité une série d’ajustements cohérents dans le reste du code. Au passage, j’ai corrigé un bug dans la fonction. L’ancienne version écrasait certaines variables (conflit de noms) et ciblait incorrectement les balises XML, ce qui produisait des listes vides. Ce problème est désormais corrigé en quelques lignes, et la désérialisation remplit correctement la structure list[list[Token]].
+
+### Test
+En raison de l’absence de l’environnement Trankit chez Myriam, j’ai effectué les tests de l’analyse morphosyntaxique avec Trankit.
+
+- **Attendu** : le script analyzers.py doit enrichir les articles du corpus avec une analyse morphosyntaxique (forme, lemme, POS) en utilisant spaCy, stanza ou trankit.
+- **Obtenu** : Obtenu : Trankit fonctionne correctement. J’ai d’abord généré un corpus filtré ne contenant que les article de la source Figaro. Les tests réalisés sur ce corpus de taille pas trop grande montrent des résultats cohérents et aucun problème n’a été détecté.
+---
 
 
-## Myriam BEN HADJ SGHAIER : Rapport sur les fonctionnalités BERTopic — Exercice 2 (points 6 et 7)
 
-**Groupe 16** — Myriam, Peng, Hulya (absente)
+## Myriam BEN HADJ SGHAIER : Rapport sur les fonctionnalités BERTopic : Exo 2.4 de la feuille d’introduction à BERTopic (aussi exo2.6 de la feuille de rendu final)
 
 **Date** : 17 avril 2026
 
-## Point 4 | Amélioration du script — options `--token` et `--pos` (2.4)
-
+### Point 4 | Amélioration du script — options `--token` et `--pos` (2.4)
+---
 **Attendu** : améliorer `run_bertopic.py` pour pouvoir choisir entre les mots-formes et les lemmes, filtrer sur les catégories grammaticales et déclarer ces deux options en ligne de commande.
 
 **Obtenu** :
 
-### 4a | Choix entre lemmes et mots-formes (`--token`)
-
+#### 4a | Choix entre lemmes et mots-formes (`--token`)
+---
 Dans `load_corpus()`, la construction de chaque document s'est faite par une expression conditionnelle sur chaque token :
 
 ```python
@@ -137,8 +158,8 @@ python run_bertopic.py -f json corpus_analyse.json --token lemma
 python run_bertopic.py -f json corpus_analyse.json --token form
 ```
 
-### 4b | Filtrage par catégories grammaticales (`--pos`)
-
+#### 4b | Filtrage par catégories grammaticales (`--pos`)
+---
 Le filtre POS est intégré dans la même compréhension de liste que le choix du token, via une condition supplémentaire :
 
 ```python
@@ -159,8 +180,8 @@ python run_bertopic.py -f json corpus_analyse.json --pos NOUN VERB
 python run_bertopic.py -f json corpus_analyse.json --pos NOUN
 ```
 
-### 4c | Combinaison des deux options en ligne de commande
-
+#### 4c | Combinaison des deux options en ligne de commande
+---
 Les deux options étant indépendantes dans `argparse` et transmises ensemble à `load_corpus()`, elles peuvent être utilisées simultanément :
 
 ```
@@ -178,3 +199,9 @@ Testé sur `corpus_analyse.json` (3 207 documents) — fonctionne correctement.
 | 4c | Combinaison des deux options en CLI | OK |
 
 **Conclusion** : objectif atteint. Les deux options sont implémentées de manière concise dans la fonction `load_corpus()`, dans une seule compréhension de liste, et exposées en ligne de commande via `argparse`.
+
+
+
+
+
+## Peng CHEN: les fonctionnalités BERTopic et lda : Exo 2.3 de la feuille d’introduction à BERTopic (aussi exo2.6 et 2.7 de la feuille de rendu final)
