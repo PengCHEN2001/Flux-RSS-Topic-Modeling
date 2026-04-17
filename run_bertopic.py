@@ -9,65 +9,82 @@ from pathlib import Path
 from bertopic import BERTopic
 from datastructures import suffix2loader
 
-def load_corpus(fichier: Path, format: str, token_type: str = "lemma", pos_filter: list[str] | None = None) -> list[str]:
+
+def load_corpus(fichier: Path, format: str, token_type: str = "lemma", pos_filter: list[str] | None = None) -> tuple[list[str], list[str]]:
     """
-    Charge et prépare le corpus pour BERTopic.
-    Convertit les objets Article en une liste de chaînes de caractères.
+    Charge le corpus et extrait le texte, les dates et les sources (classes).
+    Retourne listes : docs, timestamps
     """
-    
     suffix = f".{format}"
     loader = suffix2loader[suffix]
     articles = loader(fichier)
     
     docs = []
+    timestamps = []
+    
     for article in articles:
-        # Extraction basique des lemmes
-
-        # ex. 4a : choix entre lemme (t.lemma) et mot-forme (t.form)
         mots = [
-            (t.lemma if token_type == "lemma" else t.form)
+            (t.lemma if token_type == "lemma" else t.form).lower()
             for sentence in article.analysis for t in sentence 
             if len(t.lemma) > 1 and not t.lemma.isnumeric()
-        # ex. 4b : filtre sur les catégories grammaticales (None = tout garder) 
             and (pos_filter is None or t.pos in pos_filter)
         ]
+        
         if mots:
             docs.append(" ".join(mots))
+            # On récupère les métadonnées (dates)
+            date_jour = " ".join(article.date.split(" ")[2:4])
+            timestamps.append(date_jour)
+
             
     print(f"Nombre de documents extraits : {len(docs)}")
-    return docs
+    return docs, timestamps
 
 def train_bertopic_model(docs: list[str]) -> BERTopic:
     """
-    Initialise et entraîne le modèle BERTopic sur les documents fournis.
+    Initialise et entraîne le modèle BERTopic.
     """
     print("L'entraînement du modèle BERTopic (modèle français)...")
     topic_model = BERTopic(language="french")
-    topics, probs = topic_model.fit_transform(docs)
+    topic_model.fit_transform(docs)
     return topic_model
 
-def save_viz(model: BERTopic, output_path: str, chart_type: str) -> None:
+
+def save_viz(model: BERTopic, output_path: str, chart_type: str, docs: list[str], timestamps: list[str]) -> None:
     """
-    Génère et sauvegarde la visualisation en HTML.
-    Si chart_type est '2d' mais échoue (corpus trop petit), on passe au barchart.
+    Génère et sauvegarde la visualisation demandée en HTML.
+    Intègre les graphiques temporels.
     """
-    print(f"\nGénération de la visualisation (Type demandé : {chart_type})...")
+    print(f"\nGénération de la visualisation : {chart_type}...")
     
-    if chart_type == "barchart":
-        fig = model.visualize_barchart()
-        print("💡 Succès : Diagramme en barres (barchart) généré.")
-        
-    else:
-        try:
+    try:
+        if chart_type == "2d":
             fig = model.visualize_topics()
-            print("Succès : Vue 2D générée.")
-        except Exception:
-            print("Échec : Impossible de générer la vue 2D (corpus probablement trop petit / pas assez de topics).")
-            print("Basculement automatique sur le diagramme en barres...")
+        elif chart_type == "barchart":
             fig = model.visualize_barchart()
-            
-    fig.write_html(output_path)
-    print(f"Sauvegarde de la visualisation dans : {output_path}")
+        elif chart_type == "hierarchy":
+            fig = model.visualize_hierarchy()
+        elif chart_type == "heatmap":
+            fig = model.visualize_heatmap()
+        elif chart_type == "terms":
+            fig = model.visualize_term_rank()
+        elif chart_type == "over_time":
+            print("Calcul de l'évolution temporelle...")
+            topics_over_time = model.topics_over_time(docs, timestamps)
+            fig = model.visualize_topics_over_time(topics_over_time)                     
+        else:
+            print(f"Type '{chart_type}' inconnu. Utilisation par défaut du barchart.")
+            fig = model.visualize_barchart()
+        fig.write_html(output_path)
+        print(f"Succès : Visualisation sauvegardée dans '{output_path}'")
+
+    except Exception as e:
+        print(f"Échec de la visualisation '{chart_type}' : {e}")
+        if chart_type != "barchart":
+            print("Tentative de repli sur le 'barchart'...")
+            save_viz(model, output_path, "barchart", docs, timestamps) # pour éviter le cas où le corpus est trop petit, on utilise barchart qui peut etre utilisé pour tout les cas.
+
+
 
 def main():
     """
@@ -77,21 +94,16 @@ def main():
         description="Lancer BERTopic sur un corpus sérialisé",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter
     )
-    
-    # --- Exercice 2.3 : Options de la commande ---
     parser.add_argument("input_file", type=Path, help="Chemin vers le fichier du corpus analysé")
     parser.add_argument("-f", "--format", choices=["xml", "json", "pkl"], required=True, 
                         help="Format du corpus analysé (xml, json ou pkl)")
     
     parser.add_argument("-o", "--output", type=str, default=None,
                         help="Nom du fichier de sortie pour la visualisation")
-    
-    parser.add_argument("--chart", choices=["2d", "barchart"], default="2d",
-                        help="Type de visualisation (défaut: 2d). Si '2d' échoue, repli sur 'barchart'.")
-
+    parser.add_argument("--chart", choices=["2d", "barchart", "hierarchy", "heatmap", "terms", "over_time"], 
+                        default="2d", help="Type de graphique BERTopic à générer")
 # <--- ex. 4c : nouvelles options en ligne de commande --->
     # ex. 4a : --token pour choisir entre lemmes et mot-formes
-    
     parser.add_argument("--token", choices=["lemma", "form"], default="lemma",
                         help="Type de token : lemmes ou mot-formes (défaut: lemma)")
     
@@ -101,25 +113,22 @@ def main():
 
     args = parser.parse_args()
 
-
-    docs = load_corpus(args.input_file, args.format, args.token, args.pos)
-
+    docs, timestamps= load_corpus(args.input_file, args.format, args.token, args.pos)
     if not docs:
         print("Erreur : Aucun document valide trouvé. Arrêt du script.")
         return
 
     model = train_bertopic_model(docs)
 
-    print()
-    print("Top 10 des topics :")
+    print("\nTop 10 des topics :")
     print(model.get_topic_info().head(10))
     print()
 
     if args.output:
-        save_viz(model, str(args.output), args.chart)
+        # On passe toutes les listes à save_viz
+        save_viz(model, args.output, args.chart, docs, timestamps)
     else:
-        print("\n Aucune visualisation demandée. Vous pouvez utiliser '-o xxx.html' pour générer un graphe.")
-
+        print("\nAucune sortie de visualisation demandée. Utilisez -o pour générer un fichier HTML si vous voulez.")
 
 if __name__ == "__main__":
     main()
