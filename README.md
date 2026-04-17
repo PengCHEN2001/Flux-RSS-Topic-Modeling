@@ -12,7 +12,7 @@ Ce manuel explique comment utiliser les scripts du projet pas à pas, sans conna
 > **Note** : les chemins contenant des espaces doivent être entourés de guillemets. 
 > Exemple : `"../2026/02/10/Blast -- articles.xml"`
 
-## 1. Lire un flux RSS — `rss_reader.py`
+## 1. Lire un flux RSS | `rss_reader.py`
 
 Lit **un seul fichier XML** RSS et affiche les articles dans le terminal.
 
@@ -34,7 +34,7 @@ Pour les chemins avec espaces ou caractères spéciaux :
 python3 rss_reader.py ~/RSS_doc/2026/02/10/mar.10\:26/Flux\ RSS\ -\ BFM\ BUSINESS\ -\ Consommation.xml -r etree
 ```
 
-## 2. Parcourir un corpus et filtrer — `rss_parcours.py`
+## 2. Parcourir un corpus et filtrer | `rss_parcours.py`
 
 Parcourt un **dossier entier** de fichiers XML, applique des filtres, et peut sauvegarder le résultat.
 
@@ -115,7 +115,7 @@ python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -w glob \
   --output-file corpus_filtre.json --output-format json
 ```
 
-## 3. Convertir entre formats — `datastructures.py`
+## 3. Convertir entre formats | `datastructures.py`
 
 Convertit un corpus sérialisé d'un format vers un autre.
 
@@ -132,7 +132,7 @@ python3 datastructures.py -in xml -out pickle corpus.xml
 
 > Le fichier de sortie est créé automatiquement dans le même dossier avec la nouvelle extension.
 
-## 4. Analyser morphosyntaxiquement le corpus — `analyzers.py`
+## 4. Analyser morphosyntaxiquement le corpus | `analyzers.py`
 
 Enrichit chaque article avec des tokens (forme, lemme, POS) en utilisant un analyseur NLP.
 
@@ -247,25 +247,27 @@ python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
   -a lemme --pos NOUN VERB ADJ --num-topics 10 --bigrams
 
 ```
-# Manuel utilisateur (pour les points 6 et 7 de l'exercice 2) : 
+# Ajouter ici le manuel pour les points 6 et 7 de l'exercice de la fiche Rendu Final
 
-# Commandes — Exercice 2.4
+# Ajouter ici le manuel pour les points 2.1, 2, 3a, b de la fiche d'introduction à BERTopic
 
-## 4a — Choisir entre lemmes et mot-formes (`--token`)
+# Commandes | Exercice 2.4 (fiche d'introduction à BERTopic)
+
+## 4a | Choisir entre lemmes et mot-formes (`--token`)
 
 ```bash
 python run_bertopic.py -f json corpus_analyse.json --token lemma
 python run_bertopic.py -f json corpus_analyse.json --token form
 ```
 
-## 4b — Filtrer les catégories grammaticales (`--pos`)
+## 4b | Filtrer les catégories grammaticales (`--pos`)
 
 ```bash
 python run_bertopic.py -f json corpus_analyse.json --pos NOUN VERB
 python run_bertopic.py -f json corpus_analyse.json --pos NOUN
 ```
 
-## 4c — Combiner les deux options
+## 4c | Combiner les deux options
 
 ```bash
 python run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB -o topics.html
