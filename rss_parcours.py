@@ -63,13 +63,13 @@ def walk_glob(corpus: str) -> list[str]:
 def filtre_start_date(start: str) -> Callable[[Article], bool]:
     def filtre(article: Article) -> bool:
         if not article.date:
-            return True
+            return False
         try:
             article_date = date_parser.parse(article.date).replace(tzinfo=None)
             start_date = date_parser.parse(start).replace(tzinfo=None)
             return article_date >= start_date
         except Exception:
-            return True
+            return False
 
     return filtre
 
@@ -77,13 +77,13 @@ def filtre_start_date(start: str) -> Callable[[Article], bool]:
 def filtre_end_date(end: str) -> Callable[[Article], bool]:
     def filtre(article: Article) -> bool:
         if not article.date:
-            return True
+            return False
         try:
             article_date = date_parser.parse(article.date).replace(tzinfo=None)
             end_date = date_parser.parse(end).replace(tzinfo=None)
             return article_date <= end_date
         except Exception:
-            return True
+            return False
 
     return filtre
 
@@ -98,16 +98,14 @@ def filtre_par_source(sources: list[str]) -> Callable[[Article], bool]:
     return filtre
 
 
-def filtre_par_categories(categories: list[str]) -> Callable[[Article], bool]:
-    def filtre(article: Article) -> bool:
-        article_categories = [c.lower() for c in article.categories]
-        for category in categories:
-            if category.lower() not in article_categories:
-                return False
-        return True
+def filtre_par_categories(categories: list[str]):
+    cat_set = set(c.lower() for c in categories)
+
+    def filtre(article: Article):
+        article_set = set(c.lower() for c in article.categories)
+        return len(cat_set & article_set) > 0  
 
     return filtre
-
 
 def apply_filters(
     articles: list[Article], filtres: list[Callable[[Article], bool]]
