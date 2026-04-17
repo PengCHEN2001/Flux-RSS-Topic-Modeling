@@ -12,8 +12,9 @@ Ce rapport a été rédigé après test effectif par Myriam BHS (points 1 à 5) 
 - Répartition des points par exercice 
 - Création d'une branche NP-exN-sN (Np = initiales Nom-Prénom)
 - Message de commit à chaque partie pushée
-- Création d'un tag-fin : nous nous sommes mis d'accord pour que chacun fasse plusieurs points d'un exercice (ex2 1,2,3 par exemple), en sachant que. nous n'étions que deux. Une fois les points finis, un tag exercice-Nn-fin est crée. Si un membre fini les derniers points du dernier exercice de la fiche, il met un tag-fiche-fin directement. 
-- Une fois la fiche terminée, la personne ayant fait les derniers exercices se charge de merge vers le main.
+- Création d'un tag-fin : nous nous sommes mis d'accord pour que chacun fasse plusieurs points d'un exercice (ex2 1,2,3 par exemple), en sachant que nous n'étions que deux. Une fois les points finis, un tag Np-ex-fin est crée. Si un membre fini les derniers points du dernier exercice de la fiche, il met un tag-fiche-fin directement. 
+- Chacun relit le code de l'autre et crée un tag ex-relu après la relecture.
+- Une fois la fiche terminée et le code relu, la personne ayant fait les derniers exercices se charge de merge vers le main et de créer le tag de fin de la fiche.
 
 ## Point 1| Lire un flux RSS unique (re, etree, feedparser)
 
