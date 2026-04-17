@@ -1,12 +1,19 @@
 ## Myriam BEN HADJ SGHAIER : Rapport sur l'ensemble des fonctionnalités attendues pour les points 1 à 5 de l'exercice 2
 
-**Groupe 16** — Myriam, Peng, Hulya 
+**Groupe 16** — Myriam, Peng, Hulya (absente)
 
 **Date** : 6 avril 2026
 
-## Répartition des tâches de rédaction
+## Répartition des tâches et conventions 
 
-Ce rapport a été rédigé après test effectif de l'ensemble de la pipeline sur un corpus RSS personnel (`donnees/`). Chaque point a été testé individuellement et les résultats observés sont décrits ci-dessous.
+Ce rapport a été rédigé après test effectif par Myriam BHS (points 1 à 5) de l'ensemble de la pipeline sur un corpus RSS personnel (`donnees/`). Chaque point a été testé individuellement et les résultats observés sont décrits ci-dessous.
+
+**Les membres du groupe se sont organisés de la manière suivante :**
+- Répartition des points par exercice 
+- Création d'une branche NP-exN-sN (Np = initiales Nom-Prénom)
+- Message de commit à chaque partie pushée
+- Création d'un tag-fin : nous nous sommes mis d'accord pour que chacun fasse plusieurs points d'un exercice (ex2 1,2,3 par exemple), en sachant que. nous n'étions que deux. Une fois les points finis, un tag exercice-Nn-fin est crée. Si un membre fini les derniers points du dernier exercice de la fiche, il met un tag-fiche-fin directement. 
+- Une fois la fiche terminée, la personne ayant fait les derniers exercices se charge de merge vers le main.
 
 ## Point 1| Lire un flux RSS unique (re, etree, feedparser)
 
@@ -89,3 +96,84 @@ Le rapport actuel couvre l'ensemble des fonctionnalités attendues pour les poin
 - Normaliser la valeur du champ `source` pour n'afficher que le nom du fichier et non le chemin complet, ce qui rendrait le filtre `-s` plus intuitif.
 - Ajouter un avertissement explicite lorsque feedparser ne récupère pas de catégories, plutôt que de retourner silencieusement une liste vide.
 - Documenter l'extension `.pickle` générée par le format pickle dans les messages d'aide des scripts.
+
+
+############### PENG ################ EX 2 POINTS 1, 2, 3a, b
+
+
+## Myriam BEN HADJ SGHAIER : Rapport sur les fonctionnalités BERTopic — Exercice 2 (points 6 et 7)
+
+**Groupe 16** — Myriam, Peng, Hulya (absente)
+
+**Date** : 17 avril 2026
+
+## Point 4 | Amélioration du script — options `--token` et `--pos` (2.4)
+
+**Attendu** : améliorer `run_bertopic.py` pour pouvoir choisir entre les mots-formes et les lemmes, filtrer sur les catégories grammaticales et déclarer ces deux options en ligne de commande.
+
+**Obtenu** :
+
+### 4a | Choix entre lemmes et mots-formes (`--token`)
+
+Dans `load_corpus()`, la construction de chaque document s'est faite par une expression conditionnelle sur chaque token :
+
+```python
+(t.lemma if token_type == "lemma" else t.form)
+for sentence in article.analysis for t in sentence
+```
+
+L'option `--token` est déclarée dans le parseur avec deux valeurs possibles :
+
+```python
+parser.add_argument("--token", choices=["lemma", "form"], default="lemma",
+                    help="Type de token : lemmes ou mot-formes (défaut: lemma)")
+```
+
+Utilisation :
+
+```
+python run_bertopic.py -f json corpus_analyse.json --token lemma
+python run_bertopic.py -f json corpus_analyse.json --token form
+```
+
+### 4b | Filtrage par catégories grammaticales (`--pos`)
+
+Le filtre POS est intégré dans la même compréhension de liste que le choix du token, via une condition supplémentaire :
+
+```python
+and (pos_filter is None or t.pos in pos_filter)
+```
+
+Quand `--pos` n'est pas spécifié, `pos_filter` vaut `None` et tous les tokens sont conservés. L'option accepte plusieurs valeurs grâce à `nargs="+"` :
+
+```python
+parser.add_argument("--pos", nargs="+", default=None, metavar="CAT",
+                    help="Catégories grammaticales à conserver (ex: --pos NOUN VERB). Défaut : toutes.")
+```
+
+Utilisation :
+
+```
+python run_bertopic.py -f json corpus_analyse.json --pos NOUN VERB
+python run_bertopic.py -f json corpus_analyse.json --pos NOUN
+```
+
+### 4c | Combinaison des deux options en ligne de commande
+
+Les deux options étant indépendantes dans `argparse` et transmises ensemble à `load_corpus()`, elles peuvent être utilisées simultanément :
+
+```
+python run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB -o topics.html
+```
+
+Testé sur `corpus_analyse.json` (3 207 documents) — fonctionne correctement.
+
+## Bilan
+
+| Sous-point | Objectif | Statut |
+|------------|----------|--------|
+| 4a | Option `--token` (lemma / form) dans `load_corpus()` et argparse | OK |
+| 4b | Option `--pos` avec `nargs="+"` et filtre dans la compréhension de liste | OK |
+| 4c | Combinaison des deux options en CLI | OK |
+
+**Conclusion** : objectif atteint. Les deux options sont implémentées de manière concise dans la fonction `load_corpus()`, dans une seule compréhension de liste, et exposées en ligne de commande via `argparse`.
