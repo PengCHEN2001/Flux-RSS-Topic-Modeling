@@ -260,6 +260,7 @@ On retrouvera les métadonnées suivantes :
 def metadonnees(fichier_xml):
     feed = feedparser.parse(fichier_xml)
     metadonnees_articles = []
+    source_name = Path(fichier_xml).name
 
     for entry in feed.entries:
         channel_categories = [
@@ -280,7 +281,7 @@ def metadonnees(fichier_xml):
 
         article = Article(
             id=entry.get("id") or entry.get("link") or "No id",
-            source=fichier_xml,
+            source = source_name,
             title=entry.get("title", "No title"),
             content=description_texte,
             date=entry.get("published") or entry.get("updated") or "No published or updated",
