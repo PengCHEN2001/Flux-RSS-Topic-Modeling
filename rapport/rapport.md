@@ -201,7 +201,33 @@ Testé sur `corpus_analyse.json` (3 207 documents) — fonctionne correctement.
 **Conclusion** : objectif atteint. Les deux options sont implémentées de manière concise dans la fonction `load_corpus()`, dans une seule compréhension de liste, et exposées en ligne de commande via `argparse`.
 
 
+## Peng CHEN: Rapport sur les fonctionnalités BERTopic et lda : Exo 2.3 de la feuille d’introduction à BERTopic (aussi exo2.6 et 2.7 de la feuille de rendu final)
+### Objectifs Attendus
+* Générer des topics cohérents à partir de nos données analysés par spacy/stanza/trankit, avec une interface en ligne de commande (argparse) dans `run_bertopic.py`.
+* Produire des visualisations interactives pour BERTopic et LDA.
+### Processus et Choix Techniques 
+#### Construction du Code
+Puisqu'il s'agit d'une nouvelle feature, j'ai d'abord créé une branche Git dédiée : `PC-visualisation`.
 
+**Pour BERTopic (`run_bertopic.py`) :**
+Au lieu de se contenter d'un seul graphique par défaut, j’ai configuré le script pour générer 6 types de visualisations HTML différentes selon l’analyse souhaitée:
+- Le Barchart (Mots-clés) : Affiche le top des mots les plus importants pour chaque sujet, ce qui permet d'"étiqueter" rapidement un thème.
+- La carte 2D (Distance sémantique) : Représente chaque sujet par un cercle sur un plan, permettant de voir sa popularité (taille du cercle) et d'identifier les thèmes qui se ressemblent (les cercles proches parlent de la même chose).
+- L'arbre hiérarchique (Hierarchy) : Un arbre qui relie les sujets entre eux pour comprendre comment les petits micro-sujets s'emboîtent et forment les grandes rubriques de l'actualité.
+- La Heatmap (Carte de chaleur) : Un tableau de couleurs qui croise tous les sujets pour repérer d'un seul coup d'œil quels thèmes "voyagent ensemble" ou se croisent souvent dans les mêmes articles.
+- Le déclin des termes (Terms) : Une courbe montrant comment l'importance des mots chute dans un sujet, idéale pour savoir s'il ne tient que sur 2 mots ultra-spécifiques ou s'il repose sur un vocabulaire très large.
+- L'évolution temporelle (Over time) : Des courbes sur un axe chronologique pour repérer les pics de buzz et suivre la durée de vie d'un sujet dans l'actualité (comme nos données RSS sont très concentrées (sur quelques jours), j'ai regroupé les dates par "mois". Sans ce rééchantillonnage, le graphe aurait été illisible à cause de la précision à la seconde.)
+- *Sécurité (Fallback)* : Si le corpus est trop petit pour générer une carte complexe, le script ne plante pas. Il bascule automatiquement sur la génération du `barchart`.
 
+**Pour LDA (`run_lda.py`) :**
+Ici, la stratégie est différente. On utilise directement le standard de l'industrie : **`pyLDAvis`**. Pas besoin d'autre chose.
+* Il condense tout dans un seul dashboard HTML interactif (carte des distances à gauche, histogrammes à droite).
+* Le curseur $\lambda$ qui permet de masquer les mots trop banals pour faire ressortir le vocabulaire vraiment exclusif et spécifique à chaque sujet.
 
-## Peng CHEN: les fonctionnalités BERTopic et lda : Exo 2.3 de la feuille d’introduction à BERTopic (aussi exo2.6 et 2.7 de la feuille de rendu final)
+#### Tests et Paramétrages
+- Pour tester le code efficacement sans surcharger la machine avec tout le corpus, j'ai extrait un sous-corpus contenant **uniquement les articles du *Figaro*** (environ 1103 articles). 
+- De plus, j'ai ajouté un filtre morphosyntaxique (POS tagging) strict via `argparse`. On ne garde que "la crème de la crème" : **les Noms (`NOUN`), Noms Propres (`PROPN`) et Adjectifs (`ADJ`)**. Cela permet d'obtenir un vocabulaire journalistique de haute qualité et rend les thèmes beaucoup plus pertinents.
+
+### Résultats Obtenus 
+Tout fonctionne comme prévu !  Les commandes s'exécutent sans erreur et chaque graphique a bien généré son fichier HTML interactif (disponibles dans le dossier `page_html`). Grâce au ciblage sur *Le Figaro* et au filtre POS (NOUN/PROPN/ADJ), les thèmes générés sont sémantiquement plus clairs.
+
