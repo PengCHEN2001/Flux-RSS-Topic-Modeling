@@ -222,92 +222,93 @@ python3 analyzers.py corpus.json corpus_analyse.json -a spacy
 
 ## 5. Topic modeling LDA | `run_lda.py`
 
-Effectue une modélisation thématique sur un corpus déjà analysé (tokens requis).
+Effectue une modélisation thématique (LDA) sur un corpus déjà annoté morphosyntaxiquement.
+
+Ce script permet :
+- filtrage morphosyntaxique (POS)
+- choix lemmes / mots-formes
+- extraction de bigrammes
+- entraînement LDA
+- visualisation pyLDAvis (HTML)
 
 ### Syntaxe minimale
 
 ```bash
-python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json
+python3 run_lda.py <input_file> [options]
 ```
 
 ### Toutes les options
 
 ```bash
-python3 run_lda.py \
-  --input-file corpus_analyse.json \   # corpus en entrée (avec tokens)
-  --output-file topics.json \          # fichier de sortie JSON
-  -f json \                            # format : json, pickle ou xml (défaut : json)
-  -a lemme \                           # attribut : "lemme" ou "text" (défaut : lemme)
-  --pos NOUN VERB ADJ \               # filtrer par catégories grammaticales
-  --num-topics 10 \                    # nombre de topics (défaut : 10)
-  --passes 20 \                        # tours d'entraînement (défaut : 20)
-  --iterations 400 \                   # itérations internes (défaut : 400)
-  --no-below 2 \                       # supprimer termes < N documents (défaut : 2)
-  --no-above 0.5 \                     # supprimer termes > X% des docs (défaut : 0.5)
-  --bigrams                            # activer les bigrammes
+python3 run_lda.py corpus.json \        # corpus d'entrée ( sérialisé avec tokens)
+  --use-lemma \                         # utiliser les lemmes au lieu des formes brutes
+  --pos NOUN VERB \                     # ne garder que les noms et les verbes
+  --num-topics 15 \                     # nombre de topics à extraire(par défaut = 10)
+  --passes 30 \                         # nombre de passages (entraînement) sur le corpus (par défaut = 20)
+  --iterations 400 \                    # itérations internes du modèle LDA (par défaut = 400)
+  --no-below 5 \                        # supprimer les mots présents dans < 5 documents (par défaut = 5)
+  --no-above 0.4 \                      # supprimer les mots trop fréquents (> 40% des docs) (par défaut = 0.5)
+  --bigrams \                           # activer l'ajout de bigrammes (ex: machine_learning)
+  -c lda_viz.html                       # fichier HTML de visualisation (pyLDAvis)
 ```
 
 ### Exemples
 
 ```bash
 # Sur les lemmes, nouns et verbes seulement, 15 topics
-python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
-  -a lemme --pos NOUN VERB --num-topics 15
+python3 run_lda.py corpus_analyse.json \
+  --use-lemma \                 # utiliser les lemmes
+  --pos NOUN VERB \             # garder seulement noms et verbes
+  --num-topics 15               # 15 topics à extraire
 
-# Depuis un pickle, sortie JSON, avec bigrammes
-python3 run_lda.py --input-file corpus_analyse.pickle --output-file topics.json \
-  -f pickle --bigrams
+# Corpus pickle + bigrammes + visualisation
+python3 run_lda.py corpus_analyse.pickle \
+  --bigrams \                   # activer les bigrammes
+  -c lda_viz.html               # génération de la visualisation HTML
 
-# Mots-formes (non lemmatisés), tous POS
-python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
-  -a text --num-topics 5 --passes 10
+# Mots-formes (non lemmatisés), moins de topics
+python3 run_lda.py corpus_analyse.json \
+  --no-use-lemma \              # utiliser les formes brutes (tokens)
+  --num-topics 5 \              # 5 topics
+  --passes 10                   # entraînement plus rapide
 ```
+Le modèle LDA affiche dans le terminal :
+- les topics extraits
+- leur cohérence (topic coherence)
 
-### Format de la sortie
-
-La sortie est un fichier JSON contenant une liste de topics, chacun avec :
-- `coherence_score` : score de cohérence du topic
-- `topic_representation` : liste de mots avec leur probabilité (`value`, `proba`)
-
----
+Optionnellement, une visualisation interactive est générée en HTML (pyLDAvis).
 
 ## Pipeline complète de bout en bout
 
 ```bash
-# 1. Collecter le corpus depuis les XML
-python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -w glob \
-  --output-file corpus_brut.json --output-format json
+# Étape 1 : construire le corpus
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.json --output-format json
 
-# 2. Analyser morphosyntaxiquement
-python3 analyzers.py corpus_brut.json corpus_analyse.json \
-  --from-format json --to-format json --analyzer spacy
+# Étape 2 : enrichir avec analyse morphosyntaxique
+python3 analyzers.py corpus.json corpus_analyse.json -a spacy
 
-# 3. Lancer le topic modeling
-python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
-  -a lemme --pos NOUN VERB ADJ --num-topics 10 --bigrams
-
+# Étape 3 : topic modeling + visualisation
+python3 run_lda.py corpus_analyse.json --use-lemma --pos NOUN VERB ADJ -c lda_viz.html
 ```
-# Ajouter ici le manuel pour les points 6 et 7 de l'exercice de la fiche Rendu Final
 
-# Ajouter ici le manuel pour les points 2.1, 2, 3a, b de la fiche d'introduction à BERTopic
+## 6. Topic modeling Bertopic | `run_bertopic.py`
 
-# Commandes | Exercice 2.4 (fiche d'introduction à BERTopic)
 
-## 4a | Choisir entre lemmes et mot-formes (`--token`)
+### 4a | Choisir entre lemmes et mot-formes (`--token`)
 
 ```bash
 python run_bertopic.py -f json corpus_analyse.json --token lemma
 python run_bertopic.py -f json corpus_analyse.json --token form
 ```
 
-## 4b | Filtrer les catégories grammaticales (`--pos`)
+### 4b | Filtrer les catégories grammaticales (`--pos`)
 
 ```bash
 python run_bertopic.py -f json corpus_analyse.json --pos NOUN VERB
 python run_bertopic.py -f json corpus_analyse.json --pos NOUN
 ```
 
-## 4c | Combiner les deux options
+### 4c | Combiner les deux options
 
 ```bash
 python run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB -o topics.html
