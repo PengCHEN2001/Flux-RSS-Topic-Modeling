@@ -2,13 +2,13 @@
 
 Ce projet permet de traiter un corpus de flux RSS, depuis la lecture des fichiers XML jusqu’à la génération de visualisations de topics (LDA et BERTopic).
 
-La pipeline complète comprend les étapes suivantes : 
+La pipeline: 
 1. Lecture et parsing des flux RSS
-2. Filtrage du corpus (date, source, catégories)
+2. Parcourir un corpus et filtrer le corpus 
 3. Sérialisation du corpus (XML, JSON, pickle)
 4. Analyse morphosyntaxique (spaCy, stanza, trankit)
-5. Topic modeling (LDA, BERTopic)
-6. Visualisations interactives des résultats
+5. Topic modeling et visualisations (LDA)
+6. Topic modeling et visualisations (BERTopic)
 
 Ce manuel explique comment utiliser chaque étape du pipeline via des commandes en ligne pas à pas, sans connaissance du fonctionnement interne.
 
@@ -278,7 +278,7 @@ Le modèle LDA affiche dans le terminal :
 
 Optionnellement, une visualisation interactive est générée en HTML (pyLDAvis).
 
-## Pipeline complète de bout en bout
+### Pipeline complète de bout en bout
 
 ```bash
 # Étape 1 : construire le corpus
@@ -292,25 +292,73 @@ python3 run_lda.py corpus_analyse.json --use-lemma --pos NOUN VERB ADJ -c lda_vi
 ```
 
 ## 6. Topic modeling Bertopic | `run_bertopic.py`
+Effectue une modélisation thématique dynamique avec BERTopic sur un corpus déjà annoté morphosyntaxiquement.
+Ce script permet :
+- choix entre lemmes et formes brutes
+- filtrage morphosyntaxique (POS)
+- construction de topics via embeddings
+- visualisation interactive (HTML)
+- analyse optionnelle de l’évolution temporelle
 
+### Syntaxe minimale
+```bash
+python3 run_bertopic.py <input_file> -f <format> [options]
+```
 
-### 4a | Choisir entre lemmes et mot-formes (`--token`)
+### Toutes les options
 
 ```bash
-python run_bertopic.py -f json corpus_analyse.json --token lemma
+python3 run_bertopic.py corpus_analyse.xml \      # corpus d'entrée (avec tokens)
+  -f xml \                                 # format du corpus (json, xml, pkl)
+  --token lemma \                           # utiliser les lemmes (défaut) ou "form"
+  --pos NOUN VERB ADJ \                    # filtrer par catégories grammaticales (UPOS)
+  --chart 2d \                            # type de visualisation BERTopic (défaut = 2d)
+  -o viz_bertopic.html                       # fichier HTML de sortie (visualisation)
+```
+
+#### Types de visualisation (`--chart`)
+```bash
+--chart 2d          # projection globale des topics (défaut)
+--chart barchart    # mots les plus représentatifs par topic
+--chart hierarchy   # hiérarchie des topics
+--chart heatmap     # similarité entre topics
+--chart terms       # ranking des termes
+--chart over_time   # évolution temporelle des topics
+```
+
+### Exemple:
+#### Choisir entre lemmes et mot-formes (`--token`)
+
+```bash
+python3 run_bertopic.py -f json corpus_analyse.json --token lemma
 python run_bertopic.py -f json corpus_analyse.json --token form
 ```
 
-### 4b | Filtrer les catégories grammaticales (`--pos`)
+#### Filtrer les catégories grammaticales (`--pos`)
 
 ```bash
-python run_bertopic.py -f json corpus_analyse.json --pos NOUN VERB
-python run_bertopic.py -f json corpus_analyse.json --pos NOUN
+python3 run_bertopic.py -f json corpus_analyse.json --pos NOUN VERB
+python3 run_bertopic.py -f json corpus_analyse.json --pos NOUN
 ```
 
-### 4c | Combiner les deux options
+#### Visualisation (`--chart` et `-o`)
 
 ```bash
-python run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB -o topics.html
+python3 run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB --chart 2d -o bertopic_viz.html
 ```
 
+### Pipeline complète de bout en bout
+
+```bash
+# Étape 1 : construire le corpus
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.json --output-format json
+
+# Étape 2 : enrichir avec analyse morphosyntaxique
+python3 analyzers.py corpus.json corpus_analyse.json -a spacy
+
+# Étape 3 : topic modeling + visualisation
+## Si vous voulez utiliser LDA :
+python3 run_lda.py corpus_analyse.json --use-lemma --pos NOUN VERB ADJ -c lda_viz.html
+## Si vous voulez utiliser BERTopic :
+python3 run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB --chart 2d -o bertopic_viz.html
+```
