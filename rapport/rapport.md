@@ -1,4 +1,4 @@
-# Rapport du rendu fina
+# Rapport du rendu final
 **Groupe 16** — Myriam, Peng CHEN, Hulya (absente)
 
 ## Répartition des tâches et conventions 
