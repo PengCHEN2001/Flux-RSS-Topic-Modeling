@@ -1,20 +1,58 @@
-# Manuel utilisateur (pour les points 1 à 5 de l'exercice 2)
+# Manuel utilisateur - Projet RSS & Topic Modeling
 
-Ce manuel explique comment utiliser les scripts du projet pas à pas, sans connaissance du fonctionnement interne.
+Ce projet permet de traiter un corpus de flux RSS, depuis la lecture des fichiers XML jusqu’à la génération de visualisations de topics (LDA et BERTopic).
+
+La pipeline complète comprend les étapes suivantes : 
+1. Lecture et parsing des flux RSS
+2. Filtrage du corpus (date, source, catégories)
+3. Sérialisation du corpus (XML, JSON, pickle)
+4. Analyse morphosyntaxique (spaCy, stanza, trankit)
+5. Topic modeling (LDA, BERTopic)
+6. Visualisations interactives des résultats
+
+Ce manuel explique comment utiliser chaque étape du pipeline via des commandes en ligne pas à pas, sans connaissance du fonctionnement interne.
+
+## Architecture Globale du Projet
+
+
+```text
+DEPOT_GIT_PROJET/
+│
+├── [Branche : main] (Code Source)
+│   │   # Le cœur du programme : scripts fonctionnels et autonomes
+│   ├── README.md               <-- Manuel utilisateur
+│   ├── rss_reader.py           <-- Script de lecture et de parsing des flux RSS
+│   ├── rss_parcours.py         <-- Script pour filtrer et sauvegarder le corpus RSS
+│   ├── datastructures.py       <-- Structures de données et (dé)sérialisation du corpus
+│   ├── analyzers.py            <-- Script CLI pour enrichir le corpus avec une analyse morphosyntaxique
+│   ├── run_lda.py              <-- Modélisation LDA & visualisation pyLDAvis
+│   └── run_bertopic.py         <-- Modélisation BERTopic & graphiques interactifs
+│
+└── [Branche : doc] (Documentation & Résultats)
+    │   # Tout ce qui concerne l'explication et l'affichage des résultats
+    ├── README.md               <--  Manuel utilisateur
+    ├── journaux/               <--  Journaux de bord hebdomadaires
+    ├── rapport/                <--  Rapport final
+    └── page_html/              <--  Dossier contenant l’ensemble des visualisations du projet
+```
 
 ## Prérequis
 
 - Python 3.10+
-- Modules : `spacy`, `stanza`, `feedparser`, `python-dateutil`, `gensim`, `nltk`
+- Modules : `spacy`, `stanza`, `trankit`, `feedparser`, `python-dateutil`, `gensim`, `nltk`, `bertopic`
 - Modèle spaCy français : `python3 -m spacy download fr_core_news_sm`
 - Les fichiers XML RSS sont stockés dans votre dossier de corpus 
 
 > **Note** : les chemins contenant des espaces doivent être entourés de guillemets. 
 > Exemple : `"../2026/02/10/Blast -- articles.xml"`
 
+
+
 ## 1. Lire un flux RSS | `rss_reader.py`
 
 Lit **un seul fichier XML** RSS et affiche les articles dans le terminal.
+
+**Option disponible `-r`**: méthode de parsing du fichier RSS
 
 **Trois méthodes disponibles :** `re`, `etree`, `feedparser`
 
@@ -64,7 +102,7 @@ python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --start "2024-01-01" --end "
 
 ### Filtrer par source (`-s`)
 
-> **Note** : la source correspond au chemin complet du fichier XML. Utiliser une sous-chaîne de certains fichiers.
+> **Note** : la source correspond au nom complet du fichier XML. Utiliser une sous-chaîne de certains fichiers.
 > Exemple : `-s "Lib"` pour filtrer les fichiers Libération, `-s "Blast"` pour Blast.
 
 ```bash
@@ -75,8 +113,7 @@ python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -s Blast Lib
 
 ### Filtrer par catégorie (`-cat`)
 
-> **Note** : le filtre catégorie fonctionne uniquement avec `-m etree` ou `-m re`. Avec `-m feedparser`, les catégories ne sont pas extraites sur certains corpus (`categories : []`).  
-> La casse est importante : utiliser `Sport` et non `sport`.
+> La casse n'est pas importante : utiliser `Sport` ou `sport`.
 
 ```bash
 python3 rss_parcours.py -c ~/RSS_doc/ -m etree -cat Sport
@@ -87,8 +124,6 @@ python3 rss_parcours.py -c ~/RSS_doc/ -m etree -cat Sport Politique
 ### Sauvegarder le corpus (`--output-file`, `--output-format`)
 
 Formats disponibles : `json`, `pickle`, `xml`
-
-> **Note** : le format pickle génère l'extension `.pickle` (et non `.pkl`).
 
 ```bash
 python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.json --output-format json
@@ -115,69 +150,74 @@ python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -w glob \
   --output-file corpus_filtre.json --output-format json
 ```
 
-## 3. Convertir entre formats | `datastructures.py`
+## 3. Structures de données et sérialisation | `datastructures.py`
+Ce module fournit les fonctions de sérialisation et désérialisation du corpus.
+Il n’est pas un programme exécutable indépendant, mais un module utilisé par les autres scripts du projet.
 
-Convertit un corpus sérialisé d'un format vers un autre.
+Il sert de couche centrale permettant de :
+- représenter les articles RSS sous forme de dataclasses
+- stocker les résultats d’analyse morphosyntaxique
+- sauvegarder et recharger un corpus dans différents formats
 
 Formats disponibles : `json`, `pickle`, `xml`
 
-```bash
-python3 datastructures.py -in json -out pickle corpus.json
-python3 datastructures.py -in json -out xml corpus.json
-python3 datastructures.py -in pickle -out json corpus.pickle
-python3 datastructures.py -in pickle -out xml corpus.pickle
-python3 datastructures.py -in xml -out json corpus.xml
-python3 datastructures.py -in xml -out pickle corpus.xml
-```
-
-> Le fichier de sortie est créé automatiquement dans le même dossier avec la nouvelle extension.
+Ces fonctions sont utilisées est testés dans :
+- rss_parcours.py (sauvegarde / chargement du corpus)
+- analyzers.py (corpus enrichi)
+- run_lda.py
+- run_bertopic.py
 
 ## 4. Analyser morphosyntaxiquement le corpus | `analyzers.py`
 
-Enrichit chaque article avec des tokens (forme, lemme, POS) en utilisant un analyseur NLP.
+Enrichit chaque article avec une analyse morphosyntaxique (forme, lemme, POS) en utilisant différents outils NLP.
+Chaque article est complété par un champ `analysis` contenant des tokens organisés par phrases.
 
-**Analyseurs disponibles :** `spacy`, `stanza`, `trankit`
-**Formats d'entrée/sortie :** `json`, `pickle`, `xml`
+**Analyseurs disponibles :** `spacy`, `stanza`, `trankit`  
+**Formats supportés :** `json`, `pickle`, `xml`
+
 
 ### Syntaxe générale
-
 ```bash
-python3 analyzers.py <input> <output> --from-format <format> --to-format <format> --analyzer <outil>
+python3 analyzers.py <input_file> <output_file> -a <analyzer> [--shuffle]
 ```
 
 ### Avec spaCy
 
 ```bash
-python3 analyzers.py corpus.json corpus_analyse.json --from-format json --to-format json --analyzer spacy
-python3 analyzers.py corpus.pkl corpus_analyse.pkl --from-format pickle --to-format pickle --analyzer spacy
-python3 analyzers.py corpus.pkl corpus_analyse.json --from-format pickle --to-format json --analyzer spacy
+python3 analyzers.py corpus.json corpus_analyse.json -a spacy
+python3 analyzers.py corpus.xml corpus_analyse.xml -a spacy
+python3 analyzers.py corpus.pkl corpus_analyse.pkl -a spacy
 ```
 
 ### Avec Stanza
 
 ```bash
-python3 analyzers.py corpus.json corpus_analyse.json --from-format json --to-format json --analyzer stanza
-python3 analyzers.py corpus_pour_stanza.json corpus_final.json --from-format json --to-format json --analyzer stanza
+python3 analyzers.py corpus.json corpus_analyse.xml -a stanza
+python3 analyzers.py corpus.pkl corpus_analyse.xml -a stanza
 ```
-
-> Stanza est très gourmand en mémoire. Pour les grands corpus, traiter par lots de 500 articles maximum.
+> Stanza est très gourmand en mémoire. Il est conseillé de tester sur un sous-ensemble du corpus. Pour les grands corpus, traiter par lots de 500 articles maximum.
 
 ### Avec Trankit
 
 ```bash
-python3 analyzers.py corpus.json corpus_analyse.json --from-format json --to-format json --analyzer trankit
+python3 analyzers.py corpus.json corpus_analyse.json -a trankit
 ```
 
 > **Attention** : Trankit nécessite Python 3.10 et le serveur de modèles doit être accessible. Non installable sur Apple Silicon dans les conditions standards.
 
-### Pipeline complète : de XML brut à corpus analysé
+### Option `--shuffle`
+Permet de réduire le corpus pour tester rapidement la pipeline :
+```bash
+python3 analyzers.py corpus.json corpus_test.json -a spacy --shuffle
+```
 
+### Pipeline complète : de XML brut à corpus analysé
 ```bash
 # Étape 1 : construire le corpus
 python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.json --output-format json
 
-# Étape 2 : analyser
-python3 analyzers.py corpus.json corpus_analyse.json --from-format json --to-format json --analyzer spacy
+# Étape 2 : enrichir avec analyse morphosyntaxique
+python3 analyzers.py corpus.json corpus_analyse.json -a spacy
 ```
 
 ## 5. Topic modeling LDA | `run_lda.py`
