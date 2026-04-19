@@ -1,6 +1,12 @@
 # Rapport du rendu final
 **Groupe 16** — Myriam, Peng CHEN, Hulya (absente)
 
+**Note** : 
+- Nous avons décidé de faire un site pour ce projet à l'instar du projet précédent.
+Vous y retrouverez le journal, le manuel, le rapport et les visualisations BERTOpic.
+- Lien vers le site internet du projet :
+https://projet-efc0a8.gitlab.io/
+
 ## Répartition des tâches et conventions 
 - Myriam est responsable des tests sur le code précédent pour la feuille Rendu final (exercice 2, points 1 à 5) à partir du corpus RSS personnel.
 - En fonction du rapport de Myriam et de ses propres tests, Peng apporte les modifications nécessaires au code, puis effectue de nouveaux tests sur le code modifié.
