@@ -147,7 +147,7 @@
       <div class="hero-content p-4 p-md-5">
         <div class="glass p-3 p-md-4">
           <h1 class="h3 mb-1"><strong>Manuel utilisateur</strong></h1>
-          <p class="mb-0">Pipeline NLP complète // Exercice 2, points 1 à 7.</p>
+          <p class="mb-0">Pipeline RSS &amp; Topic Modeling // Du flux XML à la visualisation.</p>
         </div>
       </div>
     </section>
@@ -158,7 +158,7 @@
         <h2 class="h4 mb-3"><strong>Prérequis</strong></h2>
         <ul>
           <li>Python 3.10+</li>
-          <li>Modules : <code>spacy</code>, <code>stanza</code>, <code>feedparser</code>, <code>python-dateutil</code>, <code>gensim</code>, <code>nltk</code></li>
+          <li>Modules : <code>spacy</code>, <code>stanza</code>, <code>trankit</code>, <code>feedparser</code>, <code>python-dateutil</code>, <code>gensim</code>, <code>nltk</code>, <code>bertopic</code></li>
           <li>Modèle spaCy français : <code>python3 -m spacy download fr_core_news_sm</code></li>
           <li>Les fichiers XML RSS sont stockés dans votre dossier de corpus</li>
         </ul>
@@ -173,22 +173,16 @@
     <section class="reveal mb-4">
       <div class="modern-card p-3 p-md-4">
 
-        <!-- btn collapsible -->
-        <button class="objectif-btn" type="button"
-          data-bs-toggle="collapse" data-bs-target="#panel15"
-          aria-expanded="false" aria-controls="panel15">
-          Scripts // Points 1 à 5
-        </button>
-
-        <div class="collapse mt-4 objectif-body" id="panel15">
+        <div class="mt-2 objectif-body">
 
           <!-- 1 -->
           <div class="modern-card p-4 mb-3 md-body">
             <h3 class="d-flex align-items-center gap-2 mb-1">
               <span class="script-num">1</span>
-              Lire un flux RSS // <code>rss_reader.py</code>
+              Lire un flux RSS — <code>rss_reader.py</code>
             </h3>
             <p class="small-muted mb-3">Lit un seul fichier XML RSS et affiche les articles dans le terminal.</p>
+            <p><strong>Option disponible <code>-r</code> :</strong> méthode de parsing du fichier RSS</p>
             <p>Trois méthodes disponibles : <code>re</code>, <code>etree</code>, <code>feedparser</code>.</p>
             <div class="md-code"><code>python3 rss_reader.py fichier.xml -r re
 python3 rss_reader.py fichier.xml -r etree
@@ -196,14 +190,14 @@ python3 rss_reader.py fichier.xml -r feedparser</code></div>
             <h3>Exemple concret</h3>
             <div class="md-code"><code>python3 rss_reader.py ~/RSS_doc/2026/02/10/Blast--articles.xml -r feedparser</code></div>
             <h3>Chemins avec espaces ou caractères spéciaux</h3>
-            <div class="md-code"><code>python3 rss_reader.py ~/RSS_doc/2026/02/10/mar.10\:26/Flux\ RSS\ -\ BFM\ BUSINESS.xml -r etree</code></div>
+            <div class="md-code"><code>python3 rss_reader.py ~/RSS_doc/2026/02/10/mar.10\:26/Flux\ RSS\ -\ BFM\ BUSINESS\ -\ Consommation.xml -r etree</code></div>
           </div>
 
           <!-- 2 -->
           <div class="modern-card p-4 mb-3 md-body">
             <h3 class="d-flex align-items-center gap-2 mb-1">
               <span class="script-num">2</span>
-              Parcourir un corpus et filtrer // <code>rss_parcours.py</code>
+              Parcourir un corpus et filtrer | <code>rss_parcours.py</code>
             </h3>
             <p class="small-muted mb-3">Parcourt un dossier entier de fichiers XML, applique des filtres, et peut sauvegarder le résultat.</p>
 
@@ -222,7 +216,7 @@ python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --start "2024-01-01" --end "
 
             <h3>Filtrer par source (<code>-s</code>)</h3>
             <div class="note-box">
-              La source correspond au chemin complet du fichier XML. Utiliser une sous-chaîne.<br>
+              La source correspond au nom complet du fichier XML. Utiliser une sous-chaîne.<br>
               Exemple : <code>-s "Lib"</code> pour Libération, <code>-s "Blast"</code> pour Blast.
             </div>
             <div class="md-code"><code>python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -s Blast
@@ -230,21 +224,20 @@ python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -s Lib
 python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -s Blast Lib</code></div>
 
             <h3>Filtrer par catégorie (<code>-cat</code>)</h3>
-            <div class="note-box warn">
-              Fonctionne uniquement avec <code>-m etree</code> ou <code>-m re</code>. Avec <code>feedparser</code>, les catégories ne sont pas extraites sur certains corpus.<br>
-              La casse est importante : <code>Sport</code> et non <code>sport</code>.
+            <div class="note-box">
+              La casse n'est pas importante : <code>Sport</code> et <code>sport</code> sont équivalents.
             </div>
             <div class="md-code"><code>python3 rss_parcours.py -c ~/RSS_doc/ -m etree -cat Sport
 python3 rss_parcours.py -c ~/RSS_doc/ -m etree -cat Politique
 python3 rss_parcours.py -c ~/RSS_doc/ -m etree -cat Sport Politique</code></div>
 
             <h3>Sauvegarder le corpus (<code>--output-file</code>, <code>--output-format</code>)</h3>
-            <div class="note-box">Le format pickle génère l'extension <code>.pickle</code> (et non <code>.pkl</code>).</div>
+            <p>Formats disponibles : <code>json</code>, <code>pickle</code>, <code>xml</code></p>
             <div class="md-code"><code>python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.json    --output-format json
 python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.pickle  --output-format pickle
 python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.xml     --output-format xml</code></div>
 
-            <h3>Charger depuis un corpus déjà sérialisé</h3>
+            <h3>Charger depuis un corpus déjà sérialisé (<code>--input-file</code>, <code>--input-format</code>)</h3>
             <div class="md-code"><code>python3 rss_parcours.py --input-file corpus.json    --input-format json
 python3 rss_parcours.py --input-file corpus.pickle  --input-format pickle</code></div>
 
@@ -262,107 +255,101 @@ python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -w glob \
           <div class="modern-card p-4 mb-3 md-body">
             <h3 class="d-flex align-items-center gap-2 mb-1">
               <span class="script-num">3</span>
-              Convertir entre formats — <code>datastructures.py</code>
+              Structures de données et sérialisation | <code>datastructures.py</code>
             </h3>
-            <p class="small-muted mb-3">Convertit un corpus sérialisé d'un format vers un autre. Formats : <code>json</code>, <code>pickle</code>, <code>xml</code>.</p>
-            <div class="md-code"><code>python3 datastructures.py -in json    -out pickle  corpus.json
-python3 datastructures.py -in json    -out xml     corpus.json
-python3 datastructures.py -in pickle  -out json    corpus.pickle
-python3 datastructures.py -in pickle  -out xml     corpus.pickle
-python3 datastructures.py -in xml     -out json    corpus.xml
-python3 datastructures.py -in xml     -out pickle  corpus.xml</code></div>
-            <div class="note-box">Le fichier de sortie est créé automatiquement dans le même dossier avec la nouvelle extension.</div>
+            <p class="small-muted mb-3">Module central de sérialisation/désérialisation. Non exécutable indépendamment — utilisé par les autres scripts.</p>
+            <p>Il sert de couche centrale permettant de :</p>
+            <ul>
+              <li>représenter les articles RSS sous forme de dataclasses</li>
+              <li>stocker les résultats d'analyse morphosyntaxique</li>
+              <li>sauvegarder et recharger un corpus dans différents formats</li>
+            </ul>
+            <p>Formats disponibles : <code>json</code>, <code>pickle</code>, <code>xml</code></p>
+            <div class="note-box">Ces fonctions sont utilisées dans : <code>rss_parcours.py</code>, <code>analyzers.py</code>, <code>run_lda.py</code>, <code>run_bertopic.py</code>.</div>
           </div>
 
           <!-- 4 -->
           <div class="modern-card p-4 mb-3 md-body">
             <h3 class="d-flex align-items-center gap-2 mb-1">
               <span class="script-num">4</span>
-              Analyser morphosyntaxiquement — <code>analyzers.py</code>
+              Analyser morphosyntaxiquement | <code>analyzers.py</code>
             </h3>
-            <p class="small-muted mb-3">Enrichit chaque article avec des tokens (forme, lemme, POS). Analyseurs disponibles : <code>spacy</code>, <code>stanza</code>, <code>trankit</code>.</p>
+            <p class="small-muted mb-3">Enrichit chaque article avec une analyse morphosyntaxique (forme, lemme, POS). Analyseurs disponibles : <code>spacy</code>, <code>stanza</code>, <code>trankit</code>. Formats supportés : <code>json</code>, <code>pickle</code>, <code>xml</code>.</p>
 
             <h3>Syntaxe générale</h3>
-            <div class="md-code"><code>python3 analyzers.py &lt;input&gt; &lt;output&gt; --from-format &lt;format&gt; --to-format &lt;format&gt; --analyzer &lt;outil&gt;</code></div>
+            <div class="md-code"><code>python3 analyzers.py &lt;input_file&gt; &lt;output_file&gt; -a &lt;analyzer&gt; [--shuffle]</code></div>
 
             <h3>Avec spaCy</h3>
-            <div class="md-code"><code>python3 analyzers.py corpus.json  corpus_analyse.json  --from-format json    --to-format json    --analyzer spacy
-python3 analyzers.py corpus.pkl   corpus_analyse.pkl   --from-format pickle  --to-format pickle  --analyzer spacy
-python3 analyzers.py corpus.pkl   corpus_analyse.json  --from-format pickle  --to-format json    --analyzer spacy</code></div>
+            <div class="md-code"><code>python3 analyzers.py corpus.json corpus_analyse.json -a spacy
+python3 analyzers.py corpus.xml  corpus_analyse.xml  -a spacy
+python3 analyzers.py corpus.pkl  corpus_analyse.pkl  -a spacy</code></div>
 
             <h3>Avec Stanza</h3>
-            <div class="md-code"><code>python3 analyzers.py corpus.json corpus_analyse.json --from-format json --to-format json --analyzer stanza</code></div>
-            <div class="note-box warn">Stanza est très gourmand en mémoire. Pour les grands corpus, traiter par lots de 500 articles maximum.</div>
+            <div class="md-code"><code>python3 analyzers.py corpus.json corpus_analyse.xml -a stanza
+python3 analyzers.py corpus.pkl  corpus_analyse.xml  -a stanza</code></div>
+            <div class="note-box warn">Stanza est très gourmand en mémoire. Il est conseillé de tester sur un sous-ensemble du corpus. Pour les grands corpus, traiter par lots de 500 articles maximum.</div>
 
             <h3>Avec Trankit</h3>
-            <div class="md-code"><code>python3 analyzers.py corpus.json corpus_analyse.json --from-format json --to-format json --analyzer trankit</code></div>
+            <div class="md-code"><code>python3 analyzers.py corpus.json corpus_analyse.json -a trankit</code></div>
             <div class="note-box warn">Trankit nécessite Python 3.10 et le serveur de modèles doit être accessible. Non installable sur Apple Silicon dans les conditions standards.</div>
+
+            <h3>Option <code>--shuffle</code></h3>
+            <p>Réduit le corpus pour tester rapidement la pipeline :</p>
+            <div class="md-code"><code>python3 analyzers.py corpus.json corpus_test.json -a spacy --shuffle</code></div>
 
             <h3>Pipeline complète : de XML brut à corpus analysé</h3>
             <div class="md-code"><code># Étape 1 : construire le corpus
 python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.json --output-format json
 
-# Étape 2 : analyser
-python3 analyzers.py corpus.json corpus_analyse.json --from-format json --to-format json --analyzer spacy</code></div>
+# Étape 2 : enrichir avec analyse morphosyntaxique
+python3 analyzers.py corpus.json corpus_analyse.json -a spacy</code></div>
           </div>
 
           <!-- 5 -->
           <div class="modern-card p-4 mb-1 md-body">
             <h3 class="d-flex align-items-center gap-2 mb-1">
               <span class="script-num">5</span>
-              Topic modeling LDA — <code>run_lda.py</code>
+              Topic modeling LDA | <code>run_lda.py</code>
             </h3>
-            <p class="small-muted mb-3">Modélisation thématique sur un corpus déjà analysé (tokens requis).</p>
+            <p class="small-muted mb-3">Modélisation thématique sur un corpus déjà annoté morphosyntaxiquement.</p>
 
             <h3>Syntaxe minimale</h3>
-            <div class="md-code"><code>python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json</code></div>
+            <div class="md-code"><code>python3 run_lda.py &lt;input_file&gt; [options]</code></div>
 
             <h3>Toutes les options</h3>
-            <div class="md-code"><code>python3 run_lda.py \
-  --input-file corpus_analyse.json \   # corpus en entrée (avec tokens)
-  --output-file topics.json \          # fichier de sortie JSON
-  -f json \                            # format : json, pickle ou xml (défaut : json)
-  -a lemme \                           # attribut : "lemme" ou "text" (défaut : lemme)
-  --pos NOUN VERB ADJ \                # filtrer par catégories grammaticales
-  --num-topics 10 \                    # nombre de topics (défaut : 10)
-  --passes 20 \                        # tours d'entraînement (défaut : 20)
-  --iterations 400 \                   # itérations internes (défaut : 400)
-  --no-below 2 \                       # supprimer termes &lt; N documents (défaut : 2)
-  --no-above 0.5 \                     # supprimer termes &gt; X% des docs (défaut : 0.5)
-  --bigrams                            # activer les bigrammes</code></div>
+            <div class="md-code"><code>python3 run_lda.py corpus_analyse.json \
+  --use-lemma \          # utiliser les lemmes (opposé : --no-use-lemma)
+  --pos NOUN VERB \      # ne garder que les noms et les verbes
+  --num-topics 15 \      # nombre de topics à extraire (défaut : 10)
+  --passes 30 \          # nombre de passages sur le corpus (défaut : 20)
+  --iterations 400 \     # itérations internes du modèle LDA (défaut : 400)
+  --no-below 5 \         # supprimer les mots présents dans &lt; 5 documents (défaut : 5)
+  --no-above 0.4 \       # supprimer les mots trop fréquents (&gt; 40% des docs) (défaut : 0.5)
+  --bigrams \            # activer l'ajout de bigrammes
+  -c lda_viz.html        # fichier HTML de visualisation (pyLDAvis)</code></div>
 
             <h3>Exemples</h3>
-            <div class="md-code"><code># Sur les lemmes, nouns et verbes seulement, 15 topics
-python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
-  -a lemme --pos NOUN VERB --num-topics 15
+            <div class="md-code"><code># Sur les lemmes, noms et verbes seulement, 15 topics
+python3 run_lda.py corpus_analyse.json \
+  --use-lemma --pos NOUN VERB --num-topics 15
 
-# Depuis un pickle, sortie JSON, avec bigrammes
-python3 run_lda.py --input-file corpus_analyse.pickle --output-file topics.json \
-  -f pickle --bigrams
+# Corpus pickle + bigrammes + visualisation
+python3 run_lda.py corpus_analyse.pickle \
+  --bigrams -c lda_viz.html
 
-# Mots-formes (non lemmatisés), tous POS
-python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
-  -a text --num-topics 5 --passes 10</code></div>
-
-            <h3>Format de la sortie</h3>
-            <p>La sortie est un fichier JSON contenant une liste de topics, chacun avec :</p>
-            <ul>
-              <li><code>coherence_score</code> : score de cohérence du topic</li>
-              <li><code>topic_representation</code> : liste de mots avec leur probabilité (<code>value</code>, <code>proba</code>)</li>
-            </ul>
+# Mots-formes (non lemmatisés), moins de topics
+python3 run_lda.py corpus_analyse.json \
+  --no-use-lemma --num-topics 5 --passes 10</code></div>
 
             <h3>Pipeline complète de bout en bout</h3>
-            <div class="md-code"><code># 1. Collecter le corpus depuis les XML
-python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser -w glob \
-  --output-file corpus_brut.json --output-format json
+            <div class="md-code"><code># Étape 1 : construire le corpus
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.json --output-format json
 
-# 2. Analyser morphosyntaxiquement
-python3 analyzers.py corpus_brut.json corpus_analyse.json \
-  --from-format json --to-format json --analyzer spacy
+# Étape 2 : enrichir avec analyse morphosyntaxique
+python3 analyzers.py corpus.json corpus_analyse.json -a spacy
 
-# 3. Lancer le topic modeling
-python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
-  -a lemme --pos NOUN VERB ADJ --num-topics 10 --bigrams</code></div>
+# Étape 3 : topic modeling + visualisation
+python3 run_lda.py corpus_analyse.json --use-lemma --pos NOUN VERB ADJ -c lda_viz.html</code></div>
           </div>
 
         </div>
@@ -373,31 +360,57 @@ python3 run_lda.py --input-file corpus_analyse.json --output-file topics.json \
     <section class="reveal mb-4">
       <div class="modern-card p-3 p-md-4">
 
-        <button class="objectif-btn" type="button"
-          data-bs-toggle="collapse" data-bs-target="#panel67"
-          aria-expanded="false" aria-controls="panel67">
-          Scripts // Points 6 et 7
-        </button>
-
-        <div class="collapse mt-4 objectif-body" id="panel67">
+        <div class="mt-2 objectif-body">
 
           <div class="modern-card p-4 mb-1 md-body">
             <h3 class="d-flex align-items-center gap-2 mb-1">
-              <span class="script-num">6–7</span>
-              Topic modeling BERTopic — <code>run_bertopic.py</code>
+              <span class="script-num">6</span>
+              Topic modeling BERTopic | <code>run_bertopic.py</code>
             </h3>
-            <p class="small-muted mb-3">Commandes pour l'exercice 2.4.</p>
+            <p class="small-muted mb-3">Modélisation thématique dynamique sur un corpus déjà annoté morphosyntaxiquement.</p>
 
-            <h3>4a — Choisir entre lemmes et mot-formes (<code>--token</code>)</h3>
-            <div class="md-code"><code>python run_bertopic.py -f json corpus_analyse.json --token lemma
-python run_bertopic.py -f json corpus_analyse.json --token form</code></div>
+            <h3>Syntaxe minimale</h3>
+            <div class="md-code"><code>python3 run_bertopic.py &lt;input_file&gt; -f &lt;format&gt; [options]</code></div>
 
-            <h3>4b — Filtrer les catégories grammaticales (<code>--pos</code>)</h3>
-            <div class="md-code"><code>python run_bertopic.py -f json corpus_analyse.json --pos NOUN VERB
-python run_bertopic.py -f json corpus_analyse.json --pos NOUN</code></div>
+            <h3>Toutes les options</h3>
+            <div class="md-code"><code>python3 run_bertopic.py corpus_analyse.xml \
+  -f xml \               # format du corpus (json, xml, pkl)
+  --token lemma \        # utiliser les lemmes (défaut) ou "form"
+  --pos NOUN VERB ADJ \  # filtrer par catégories grammaticales (UPOS)
+  --chart 2d \           # type de visualisation BERTopic (défaut : 2d)
+  -o viz_bertopic.html   # fichier HTML de sortie</code></div>
 
-            <h3>4c — Combiner les deux options</h3>
-            <div class="md-code"><code>python run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB -o topics.html</code></div>
+            <h3>Types de visualisation (<code>--chart</code>)</h3>
+            <div class="md-code"><code>--chart 2d          # projection globale des topics (défaut)
+--chart barchart    # mots les plus représentatifs par topic
+--chart hierarchy   # hiérarchie des topics
+--chart heatmap     # similarité entre topics
+--chart terms       # ranking des termes
+--chart over_time   # évolution temporelle des topics</code></div>
+
+            <h3>Choisir entre lemmes et mots-formes (<code>--token</code>)</h3>
+            <div class="md-code"><code>python3 run_bertopic.py -f json corpus_analyse.json --token lemma
+python3 run_bertopic.py -f json corpus_analyse.json --token form</code></div>
+
+            <h3>Filtrer les catégories grammaticales (<code>--pos</code>)</h3>
+            <div class="md-code"><code>python3 run_bertopic.py -f json corpus_analyse.json --pos NOUN VERB
+python3 run_bertopic.py -f json corpus_analyse.json --pos NOUN</code></div>
+
+            <h3>Visualisation (<code>--chart</code> et <code>-o</code>)</h3>
+            <div class="md-code"><code>python3 run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB --chart 2d -o bertopic_viz.html</code></div>
+
+            <h3>Pipeline complète de bout en bout</h3>
+            <div class="md-code"><code># Étape 1 : construire le corpus
+python3 rss_parcours.py -c ~/RSS_doc/ -m feedparser --output-file corpus.json --output-format json
+
+# Étape 2 : enrichir avec analyse morphosyntaxique
+python3 analyzers.py corpus.json corpus_analyse.json -a spacy
+
+# Étape 3 : topic modeling + visualisation
+## Si vous voulez utiliser LDA :
+python3 run_lda.py corpus_analyse.json --use-lemma --pos NOUN VERB ADJ -c lda_viz.html
+## Si vous voulez utiliser BERTopic :
+python3 run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB --chart 2d -o bertopic_viz.html</code></div>
           </div>
 
         </div>

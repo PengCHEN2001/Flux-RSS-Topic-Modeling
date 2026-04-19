@@ -419,9 +419,7 @@
 
             <!-- ===== MYRIAM ===== -->
             <div class="tab-pane fade show active" id="journal-myriam">
-              <p class="journal-file mb-3">
-                Journal de bord Myriam // suivi individuel S10
-              </p>
+              <p class="journal-file mb-3">Journal de bord Myriam // suivi individuel S10</p>
               <article class="md-wrap">
                 <div class="md-meta">
                   <span class="md-badge">Myriam BHS</span>
@@ -429,63 +427,46 @@
                   <span class="md-badge">BERTopic · spaCy · LDA · Git</span>
                 </div>
 
-                <h2>08/04/2026 — Constitution et test du corpus</h2>
-
-                <h3>Objectif</h3>
+                <h2>08/04/2026 — Objectif</h2>
                 <p>Générer un corpus sérialisé afin de tester le script <code>run_bertopic.py</code> de mon collègue.</p>
 
                 <h3>1. Constitution du corpus brut</h3>
-                <p>
-                  Le corpus brut a été constitué à partir des fichiers XML RSS, à l'aide du script <code>rss_parcours.py</code>
-                  avec la méthode <code>feedparser</code>. Le corpus obtenu contient <strong>3210 articles</strong> issus de
-                  plusieurs sources (Libération, etc.), sérialisés au format JSON.
-                </p>
+                <p>Le corpus brut a été constitué à partir des fichiers XML RSS, à l'aide du script <code>rss_parcours.py</code> avec la méthode <code>feedparser</code>. Le corpus obtenu contient <strong>3210 articles</strong> issus de plusieurs sources (Libération, etc.), sérialisés au format JSON.</p>
 
                 <h3>2. Enrichissement morphosyntaxique</h3>
-                <p>
-                  Le corpus a été enrichi morphosyntaxiquement grâce au script <code>analyzers.py</code> en utilisant
-                  <strong>spaCy</strong> (<code>fr_core_news_md</code>). Chaque article a été tokenisé et annoté en lemmes
-                  et en parties du discours (POS).
-                </p>
+                <p>Le corpus a été enrichi morphosyntaxiquement grâce au script <code>analyzers.py</code> en utilisant <strong>spaCy</strong> (<code>fr_core_news_md</code>). Chaque article a été tokenisé et annoté en lemmes et en parties du discours (POS).</p>
 
                 <h3>3. Modélisation thématique par LDA</h3>
-                <p>
-                  Une modélisation par LDA a été lancée via <code>run_lda.py</code> sur les lemmes filtrés par catégories
-                  grammaticales (<code>NOUN</code>, <code>VERB</code>, <code>ADJ</code>), avec extraction de
-                  <strong>10 topics</strong> et activation des bigrammes. Résultats sauvegardés dans <code>topics.json</code>.
-                </p>
+                <p>Une modélisation thématique par LDA a été lancée via <code>run_lda.py</code> sur les lemmes filtrés par catégories grammaticales (<code>NOUN</code>, <code>VERB</code>, <code>ADJ</code>), avec extraction de <strong>10 topics</strong> et activation des bigrammes. Les résultats ont été sauvegardés dans <code>topics.json</code>.</p>
 
                 <h3>4. Test de <code>run_bertopic.py</code></h3>
-                <p>Le script de mon collègue a été testé avec la commande suivante :</p>
+                <p>Le script <code>run_bertopic.py</code> de mon collègue a été testé sur le corpus analysé avec la commande suivante :</p>
                 <pre><code>python3 run_bertopic.py corpus_analyse.json -f json -o test.html --chart 2d</code></pre>
-                <p>
-                  BERTopic a traité les 3210 documents et extrait 10 topics. Le modèle a téléchargé automatiquement
-                  <code>paraphrase-multilingual-MiniLM-L12-v2</code> depuis Hugging Face. La visualisation 2D a été
-                  générée avec succès.
-                </p>
-                <p><strong>Topics détectés :</strong></p>
+                <p>BERTopic a traité les 3210 documents et extrait 10 topics. Le modèle a téléchargé automatiquement le modèle d'embeddings multilingue <code>paraphrase-multilingual-MiniLM-L12-v2</code> de Hugging Face. La visualisation 2D a été générée avec succès et sauvegardée dans <code>test.html</code>, puis ouverte dans le navigateur.</p>
+
+                <p><strong>Topics détectés (vue 2D) :</strong></p>
                 <ul>
                   <li>Politique française — Macron, budget</li>
                   <li>Actualité internationale — Trump, droits de douane, Gaza</li>
                   <li>Faits divers — meurtre de Louise en Essonne</li>
-                  <li>Sport -- Marseille</li>
-                  <li>Société -- retraites, culture</li>
+                  <li>Sport — Marseille</li>
+                  <li>Société — retraites, culture</li>
                 </ul>
+
                 <p>Test avec <code>--chart barchart</code> :</p>
                 <pre><code>python3 run_bertopic.py corpus_analyse.json -f json -o test_bar.html --chart barchart</code></pre>
-                <p>
-                  Visualisation générée avec succès. Les topics varient légèrement d'une exécution à l'autre —
-                  normal, BERTopic comportant <strong>une part d'aléatoire</strong> à chaque entraînement.
-                </p>
+                <p>La visualisation en diagramme en barres a été générée avec succès. Les topics détectés sont légèrement différents de la première exécution — ce qui est normal, BERTopic comportant <strong>une part d'aléatoire à chaque entraînement</strong>. Les thèmes restent cohérents : sport (OM, Angers), Gaza, retraites, JO de Paris, Fashion Week, économie, IA et politique française (Macron).</p>
+
+                <p>Le script <code>run_bertopic.py</code> de mon collègue fonctionne correctement sur le corpus sérialisé. Les deux types de visualisation (2D et barchart) ont été générés avec succès.</p>
 
                 <hr />
 
-                <h2>10/04/2026 -- Exercice 2.4</h2>
+                <h2>10/04/2026 — Exercice 2.4</h2>
 
                 <h3>Organisation git</h3>
-                <p>Branche <code>MBHS-ex2-4s10</code> créée pour isoler le développement :</p>
+                <p>Une branche <code>MBHS-ex2-4s10</code> a été créée pour isoler le développement, afin que mon collègue puisse relire le code avant fusion :</p>
                 <pre><code>git switch -c MBHS-ex2-4s10</code></pre>
-                <p>Fusion vers <code>main</code> après relecture :</p>
+                <p>Une fois le code testé, la branche sera fusionnée vers <code>main</code> :</p>
                 <pre><code>git add run_bertopic.py
 git commit -m "ex2.4 : ajout options --token et --pos en ligne de commande"
 git switch main
@@ -493,21 +474,19 @@ git merge MBHS-ex2-4s10</code></pre>
 
                 <h3>Améliorations apportées</h3>
                 <ul>
-                  <li><strong>4a -- <code>--token</code></strong> : choisir entre les lemmes (<code>lemma</code>) et les mot-formes (<code>form</code>)</li>
-                  <li><strong>4b -- <code>--pos</code></strong> : filtrer sur les catégories grammaticales (ex : <code>NOUN</code>, <code>VERB</code>)</li>
-                  <li><strong>4c</strong> : les deux options disponibles en ligne de commande</li>
+                  <li><strong>4a — <code>--token</code></strong> : permet de choisir entre les lemmes (<code>lemma</code>) et les mot-formes (<code>form</code>)</li>
+                  <li><strong>4b — <code>--pos</code></strong> : permet de filtrer sur les catégories grammaticales (ex : <code>NOUN</code>, <code>VERB</code>)</li>
+                  <li><strong>4c</strong> : les deux options sont disponibles en ligne de commande</li>
                 </ul>
                 <p>Exemple d'utilisation :</p>
                 <pre><code>python run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB -o topics.html</code></pre>
-                <p>Script testé sur <code>corpus_analyse.json</code> (3207 documents) — fonctionne correctement.</p>
+                <p>Le script a été testé sur <code>corpus_analyse.json</code> (3207 documents) et fonctionne correctement.</p>
               </article>
             </div>
 
             <!-- ===== PENG ===== -->
             <div class="tab-pane fade" id="journal-peng">
-              <p class="journal-file mb-3">
-                Journal de bord Peng // suivi individuel S10
-              </p>
+              <p class="journal-file mb-3">Journal de bord Peng // suivi individuel S10</p>
               <article class="md-wrap">
                 <div class="md-meta">
                   <span class="md-badge">Peng CHEN</span>
@@ -515,72 +494,46 @@ git merge MBHS-ex2-4s10</code></pre>
                   <span class="md-badge">BERTopic · argparse · refactorisation</span>
                 </div>
 
-                <h2>Exercice 1 -- Correction du code précédent</h2>
-                <p>
-                  J'ai repris et restructuré une grande partie du code, notamment dans <code>analyzers.py</code>,
-                  <code>datastructures.py</code> et <code>run_lda.py</code>. En m'inspirant du style de la correction
-                  fournie par le professeur, j'ai supprimé du code et des classes superflus afin de rendre
-                  l'architecture plus claire et lisible.
-                </p>
-                <p>
-                  Dans la version précédente, dans la classe <code>Article</code>, le champ <code>token</code> était
-                  utilisé comme clé avec un type limité à <code>list[Token]</code>. J'ai modifié cette structure :
-                </p>
+                <h2>Exercice 1 — Lecture et correction du code précédent</h2>
+                <p>J'ai repris et restructuré une grande partie du code, notamment dans <code>analyzers.py</code>, <code>datastructures.py</code> et <code>run_lda.py</code>. En m'inspirant du style de la correction fournie par le professeur, j'ai supprimé du code et des classes superflus afin de rendre l'architecture plus claire et lisible.</p>
+                <p>Dans la version précédente, dans la classe <code>Article</code>, le champ <code>token</code> était utilisé comme clé, avec un type limité à <code>list[Token]</code>. J'ai modifié cette structure pour adopter une représentation plus adaptée :</p>
                 <pre><code>analysis: list[list[Token]] = field(default_factory=list)</code></pre>
-                <p>
-                  J'ai également corrigé un bug dans <code>load_xml</code> de <code>datastructures.py</code> :
-                  l'ancienne version écrasait certaines variables (conflit de noms) et ciblait incorrectement les
-                  balises XML, produisant des listes vides. La désérialisation remplit désormais correctement la
-                  structure <code>list[list[Token]]</code>.
-                </p>
+                <p>Cela a nécessité une série d'ajustements cohérents dans le reste du code. Au passage, j'ai corrigé un bug dans la fonction <code>load_xml</code> de <code>datastructures.py</code>. L'ancienne version écrasait certaines variables (conflit de noms) et ciblait incorrectement les balises XML, ce qui produisait des listes vides. Ce problème est désormais corrigé en quelques lignes, et la désérialisation remplit correctement la structure <code>list[list[Token]]</code>.</p>
+                <p>Le code est désormais plus propre, plus cohérent et plus proche de standards professionnels, ce qui nous fournit une base solide pour la suite du TP.</p>
 
                 <hr />
 
-                <h2>Exercice 2 -- Topic Modeling avec BERTopic</h2>
+                <h2>Exercice 2 — Topic Modeling avec BERTopic</h2>
 
-                <h3>Exo 2.1 -- Quick start</h3>
+                <h3>Exo 2.1 — Quick start</h3>
                 <p>Exécution réussie du script pour le quick start.</p>
 
-                <h3>Exo 2.2 -- Adaptation sur données françaises</h3>
-                <p>
-                  J'ai adapté le script pour charger nos propres données en français. Problème rencontré : lors de la
-                  génération de la visualisation 2D (<code>visualize_topics()</code>), le programme a planté (erreur
-                  UMAP) car le corpus de test était trop petit. J'ai basculé sur <code>visualize_barchart()</code>,
-                  qui fonctionne parfaitement même avec peu de topics.
-                </p>
-                <p>
-                  <strong>Observation clé :</strong> les topics étaient saturés de mots vides
-                  (« le », « de », « et »), ce qui confirme la nécessité d'un filtrage syntaxique pour la suite (exo 2.4).
-                </p>
+                <h3>Exo 2.2 — Adaptation sur données françaises</h3>
+                <p>J'ai adapté le script pour charger nos propres données en français. Problème rencontré : lors de la génération de la visualisation 2D (<code>visualize_topics()</code>), le programme a planté (erreur UMAP) car le corpus de test était trop petit pour générer suffisamment de topics. J'ai basculé sur <code>visualize_barchart()</code> qui fonctionne parfaitement même avec peu de topics.</p>
+                <p><strong>Observation clé :</strong> les topics étaient saturés de mots vides (« le », « de », « et »). Cela confirme la nécessité d'un filtrage syntaxique pour la suite (exo 2.4).</p>
 
-                <h3>Exo 2.3 -- Commande autonome</h3>
-                <p>J'ai refactorisé le script pour éliminer les valeurs codées en dur, en structurant le code par fonctionnalités :</p>
+                <h3>Exo 2.3 — Commande autonome</h3>
+                <p>J'ai refactorisé le script afin d'éliminer les valeurs codées en dur, et structuré le code par fonctionnalités :</p>
                 <ul>
-                  <li><code>load_corpus()</code> — charge le corpus en <code>xml</code>, <code>json</code> ou <code>pkl</code></li>
+                  <li><code>load_corpus()</code> — reçoit le corpus analysé sous format <code>xml</code>, <code>json</code> et <code>pkl</code></li>
                   <li><code>train_bertopic_model()</code> — entraîne le modèle</li>
-                  <li><code>save_viz()</code> — sauvegarde la visualisation, avec bascule automatique vers barchart si la vue 2D échoue</li>
+                  <li><code>save_viz()</code> — sauvegarde le résultat de la visualisation, avec bascule automatique vers barchart si la vue 2D échoue (corpus trop petit)</li>
                 </ul>
-                <p>
-                  Options ajoutées avec <code>argparse</code> : <code>-f</code> pour le format du corpus, <code>-o</code>
-                  pour sauvegarder le graphique HTML. Exemple :
-                </p>
+                <p>Options ajoutées avec <code>argparse</code> : <code>-f</code> pour le format du corpus, <code>-o</code> (optionnelle) pour sauvegarder le graphique HTML. Exemple :</p>
                 <pre><code>python run_bertopic.py -f xml Outputs/corpusA.xml</code></pre>
+                <p>Le script <code>run_bertopic.py</code> est désormais un outil de traitement en ligne de commande robuste et modulaire. Il est prêt à recevoir les options de filtrage linguistique (exo 2.4).</p>
               </article>
             </div>
 
             <!-- ===== HULYA ===== -->
             <div class="tab-pane fade" id="journal-hulya">
-              <p class="journal-file mb-3">
-                Journal de bord Hulya // S10
-              </p>
+              <p class="journal-file mb-3">Journal de bord Hulya // S10</p>
               <article class="md-wrap">
                 <div class="md-meta">
                   <span class="md-badge">Hulya (@ozenhulya72)</span>
                   <span class="md-badge">10/04/2026</span>
                 </div>
-                <p>
-                  <strong>Note :</strong> Hulya a abandonné le projet pour cause de problèmes personnels. Aucune contribution pour le S10, on lui souhaite tout de même bon courage.
-                </p>
+                <p><strong>Note :</strong> Hulya a arrêté le travail (absente). Aucune contribution pour le S10.</p>
               </article>
             </div>
 

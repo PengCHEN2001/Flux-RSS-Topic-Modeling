@@ -40,7 +40,6 @@
     /* ===== zone de visualisation ===== */
     .viz-frame {
       width: 100%;
-      min-height: 520px;
       border: 1px solid rgba(255,248,220,.12);
       border-radius: 14px;
       background: rgba(0,0,0,.25);
@@ -48,9 +47,10 @@
     }
     .viz-frame iframe {
       width: 100%;
-      height: 520px;
+      height: 600px;
       border: none;
       display: block;
+      transition: height .2s ease;
     }
 
     /* placeholder quand pas encore de fichier */
@@ -152,27 +152,19 @@
     <section class="reveal mb-4">
       <div class="modern-card p-3 p-md-4">
 
-        <button class="objectif-btn" type="button"
-          data-bs-toggle="collapse" data-bs-target="#contextePanel"
-          aria-expanded="false" aria-controls="contextePanel">
-          Contexte et commandes utilisées
-        </button>
+        <div class="mt-2 objectif-body">
+          <p>Les visualisations ci-dessous ont été générées avec <code class="ic">run_bertopic.py</code> sur un sous-corpus Figaro analysé morphosyntaxiquement avec spaCy (<code class="ic">figaro-analyse.xml</code>, ~1103 articles), avec filtrage POS <code class="ic">NOUN PROPN ADJ</code>.</p>
 
-        <div class="collapse mt-4 objectif-body" id="contextePanel">
-          <p>Les visualisations ci-dessous ont été générées avec <code class="ic">run_bertopic.py</code> sur le corpus analysé morphosyntaxiquement avec spaCy (<code class="ic">corpus_analyse.json</code>, 3 207 documents).</p>
-
-          <p><strong>Commandes :</strong></p>
-          <div class="cmd-box">python run_bertopic.py -f json corpus_analyse.json -o bertopic_2d.html --chart 2d</div>
-          <div class="cmd-box">python run_bertopic.py -f json corpus_analyse.json -o bertopic_bar.html --chart barchart</div>
-          <div class="cmd-box">python run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB -o bertopic_lemma.html</div>
-
-          <p class="mt-3"><strong>Options disponibles :</strong></p>
-          <ul>
-            <li><code class="ic">--token lemma</code> / <code class="ic">--token form</code> — lemmes ou mots-formes</li>
-            <li><code class="ic">--pos NOUN VERB ADJ</code> — filtrage par catégories grammaticales</li>
-            <li><code class="ic">--chart 2d</code> / <code class="ic">--chart barchart</code> — type de visualisation</li>
-            <li><code class="ic">-o fichier.html</code> — fichier de sortie</li>
-          </ul>
+          <p><strong>Pipeline complète :</strong></p>
+          <div class="cmd-box">python3 rss_parcours.py -c ../donnees/corpus -s figaro --output-file corpus-filtre-figaro.xml --output-format xml
+python3 analyzers.py corpus-filtre-figaro.xml figaro-analyse.xml -a spacy
+python3 run_lda.py figaro-analyse.xml --pos NOUN PROPN ADJ --num-topics 8 --passes 20 -c lda_viz_figaro.html
+python3 run_bertopic.py figaro-analyse.xml -f xml --pos NOUN PROPN ADJ --chart barchart -o bertopic_barchart_figaro.html
+python3 run_bertopic.py figaro-analyse.xml -f xml --pos NOUN PROPN ADJ --chart 2d -o bertopic_2d_figaro.html
+python3 run_bertopic.py figaro-analyse.xml -f xml --pos NOUN PROPN ADJ --chart hierarchy -o bertopic_hierarchy_figaro.html
+python3 run_bertopic.py figaro-analyse.xml -f xml --pos NOUN PROPN ADJ --chart heatmap -o bertopic_heatmap_figaro.html
+python3 run_bertopic.py figaro-analyse.xml -f xml --pos NOUN PROPN ADJ --chart terms -o bertopic_terms_figaro.html
+python3 run_bertopic.py figaro-analyse.xml -f xml --pos NOUN PROPN ADJ --chart over_time -o bertopic_over_time_figaro.html</div>
         </div>
 
       </div>
@@ -182,18 +174,8 @@
     <section class="reveal mb-4">
       <div class="modern-card p-3 p-md-4">
         <p class="viz-label">Visualisation 2D — projection UMAP des topics</p>
-
-        <!-- 
-          POUR AJOUTER LA VISUALISATION :
-          Remplace le bloc viz-placeholder par :
-          <div class="viz-frame">
-            <iframe src="bertopic_2d.html"></iframe>
-          </div>
-        -->
-        <div class="viz-placeholder">
-          <span>📊</span>
-          <p>Visualisation 2D à venir</p>
-          <small>Remplacer par <code style="color:inherit;">&lt;iframe src="bertopic_2d.html"&gt;</code></small>
+        <div class="viz-frame">
+          <iframe src="visualisation/bertopic_2d_figaro.html"></iframe>
         </div>
       </div>
     </section>
@@ -202,49 +184,58 @@
     <section class="reveal mb-4">
       <div class="modern-card p-3 p-md-4">
         <p class="viz-label">Barchart — mots les plus représentatifs par topic</p>
-
-        <!-- 
-          POUR AJOUTER LA VISUALISATION :
-          Remplace le bloc viz-placeholder par :
-          <div class="viz-frame">
-            <iframe src="bertopic_bar.html"></iframe>
-          </div>
-        -->
-        <div class="viz-placeholder">
-          <span>📊</span>
-          <p>Barchart à venir</p>
-          <small>Remplacer par <code style="color:inherit;">&lt;iframe src="bertopic_bar.html"&gt;</code></small>
+        <div class="viz-frame">
+          <iframe src="visualisation/bertopic_barchart_figaro.html"></iframe>
         </div>
       </div>
     </section>
 
-    <!-- VIZ 3 : LEMME + POS -->
+    <!-- VIZ 3 : HIERARCHY -->
     <section class="reveal mb-4">
       <div class="modern-card p-3 p-md-4">
-        <p class="viz-label">Filtrage par lemmes + POS (NOUN, VERB)</p>
-
-        <!-- 
-          POUR AJOUTER LA VISUALISATION :
-          Remplace le bloc viz-placeholder par :
-          <div class="viz-frame">
-            <iframe src="bertopic_lemma.html"></iframe>
-          </div>
-        -->
-        <div class="viz-placeholder">
-          <span>📊</span>
-          <p>Visualisation lemme + POS à venir</p>
-          <small>Remplacer par <code style="color:inherit;">&lt;iframe src="bertopic_lemma.html"&gt;</code></small>
+        <p class="viz-label">Hiérarchie — arbre des topics</p>
+        <div class="viz-frame">
+          <iframe src="visualisation/bertopic_hierarchy_figaro.html"></iframe>
         </div>
       </div>
     </section>
 
-    <!-- SLOT LIBRE -->
+    <!-- VIZ 4 : HEATMAP -->
     <section class="reveal mb-4">
       <div class="modern-card p-3 p-md-4">
-        <p class="viz-label">Visualisation supplémentaire</p>
-        <div class="viz-placeholder">
-          <span>➕</span>
-          <p>Emplacement libre pour une visualisation supplémentaire</p>
+        <p class="viz-label">Heatmap — similarité entre topics</p>
+        <div class="viz-frame">
+          <iframe src="visualisation/bertopic_heatmap_figaro.html"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIZ 5 : TERMS -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-3 p-md-4">
+        <p class="viz-label">Terms — ranking des termes par topic</p>
+        <div class="viz-frame">
+          <iframe src="visualisation/bertopic_terms_figaro.html"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIZ 6 : OVER TIME -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-3 p-md-4">
+        <p class="viz-label">Évolution temporelle — topics au fil du temps</p>
+        <div class="viz-frame">
+          <iframe src="visualisation/bertopic_over_time_figaro.html"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- VIZ 7 : LDA -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-3 p-md-4">
+        <p class="viz-label">LDA — visualisation pyLDAvis</p>
+        <div class="viz-frame">
+          <iframe src="visualisation/lda_viz_figaro.html"></iframe>
         </div>
       </div>
     </section>
@@ -256,5 +247,59 @@
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   <script src="assets/js/ppe.js"></script>
+  <script>
+    // Hauteurs par défaut selon le type de viz (fallback si auto-resize échoue)
+    const defaultHeights = {
+      '2d':         700,
+      'barchart':   500,
+      'hierarchy':  600,
+      'heatmap':    900,
+      'terms':      500,
+      'over_time':  450,
+      'lda':        850,
+    };
+
+    function getVizType(src) {
+      for (const key of Object.keys(defaultHeights)) {
+        if (src.includes(key)) return key;
+      }
+      return null;
+    }
+
+    function tryResize(iframe, attempts, delay) {
+      if (attempts <= 0) return;
+      setTimeout(() => {
+        try {
+          const doc = iframe.contentWindow.document;
+          // Chercher spécifiquement le div Plotly ou le body
+          const plotDiv = doc.querySelector('.plotly-graph-div, .js-plotly-plot, #ldavis_el');
+          const measured = plotDiv
+            ? plotDiv.getBoundingClientRect().bottom + 40
+            : Math.max(doc.documentElement.scrollHeight, doc.body ? doc.body.scrollHeight : 0) + 20;
+
+          const type = getVizType(iframe.src);
+          const minH = type ? defaultHeights[type] : 400;
+          const finalH = Math.max(measured, minH);
+
+          if (finalH > 200) {
+            iframe.style.height = finalH + 'px';
+            // Un dernier check 1s après au cas où Plotly resize encore
+            setTimeout(() => tryResize(iframe, 1, 0), 1000);
+            return;
+          }
+        } catch(e) {}
+        tryResize(iframe, attempts - 1, Math.min(delay * 1.5, 1000));
+      }, delay);
+    }
+
+    document.querySelectorAll('.viz-frame iframe').forEach(function(iframe) {
+      const type = getVizType(iframe.src);
+      if (type) iframe.style.height = defaultHeights[type] + 'px';
+
+      iframe.addEventListener('load', function() {
+        tryResize(this, 12, 200);
+      });
+    });
+  </script>
 </body>
 </html>

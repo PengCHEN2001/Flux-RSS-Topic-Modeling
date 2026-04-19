@@ -9,35 +9,10 @@
   <link href="projet.css" rel="stylesheet">
 
   <style>
-    .objectif-btn {
-      width: 100%;
-      border-radius: 18px;
-      padding: 16px 18px;
-      font-weight: 600;
-      letter-spacing: .3px;
-      color: rgba(255,255,255,.95);
-      background: linear-gradient(135deg, rgba(34,197,94,.35), rgba(16,185,129,.25));
-      border: 1px solid rgba(34,197,94,.55);
-      box-shadow: 0 14px 30px rgba(0,0,0,.25);
-      transition: transform .15s ease, box-shadow .15s ease, filter .15s ease;
-      text-align: center;
-    }
-    .objectif-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 22px 44px rgba(0,0,0,.35);
-      filter: brightness(1.05);
-    }
-    .objectif-btn:focus-visible {
-      outline: none;
-      box-shadow: 0 0 0 3px rgba(34,197,94,.45), 0 22px 44px rgba(0,0,0,.35);
-    }
-    .objectif-body p { color: rgba(255,255,255,.9); }
-
     .hero h1, .hero p,
     section > .modern-card > h2,
     section h2 { text-align: center; }
 
-    /* ===== contenu rapport ===== */
     .rapport-body {
       font-size: .95rem;
       line-height: 1.75;
@@ -64,7 +39,6 @@
     .rapport-body ul { padding-left: 1.4rem; margin-bottom: .6rem; }
     .rapport-body li { margin-bottom: .25rem; }
     .rapport-body strong { color: cornsilk; }
-
     .rapport-body code {
       background: rgba(34,197,94,.12);
       border: 1px solid rgba(34,197,94,.22);
@@ -74,44 +48,42 @@
       font-family: ui-monospace, "Fira Code", monospace;
       color: rgba(255,248,220,.95);
     }
-
-    /* statut badges */
+    .rapport-body pre {
+      background: rgba(0,0,0,.35);
+      border: 1px solid rgba(255,248,220,.12);
+      border-radius: 10px;
+      padding: .9rem 1.1rem;
+      overflow-x: auto;
+      margin: .6rem 0 1rem;
+    }
+    .rapport-body pre code {
+      background: none;
+      border: none;
+      padding: 0;
+      font-size: .85em;
+      color: rgba(255,248,220,.9);
+      white-space: pre;
+    }
     .statut-ok {
-      display: inline-block;
-      padding: .1rem .55rem;
+      display: inline-block; padding: .1rem .55rem;
       border-radius: 999px;
-      background: rgba(34,197,94,.18);
-      border: 1px solid rgba(34,197,94,.4);
-      color: rgba(34,197,94,.95);
-      font-size: .82rem;
-      font-weight: 700;
+      background: rgba(34,197,94,.18); border: 1px solid rgba(34,197,94,.4);
+      color: rgba(34,197,94,.95); font-size: .82rem; font-weight: 700;
     }
     .statut-warn {
-      display: inline-block;
-      padding: .1rem .55rem;
+      display: inline-block; padding: .1rem .55rem;
       border-radius: 999px;
-      background: rgba(251,191,36,.15);
-      border: 1px solid rgba(251,191,36,.4);
-      color: rgba(251,191,36,.95);
-      font-size: .82rem;
-      font-weight: 700;
+      background: rgba(251,191,36,.15); border: 1px solid rgba(251,191,36,.4);
+      color: rgba(251,191,36,.95); font-size: .82rem; font-weight: 700;
     }
-
-    /* tableau bilan */
     .bilan-table {
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      font-size: .9rem;
-      margin-top: 1rem;
+      width: 100%; border-collapse: separate; border-spacing: 0;
+      font-size: .9rem; margin-top: 1rem;
     }
     .bilan-table th {
       background: rgba(255,248,220,.07);
       border-bottom: 1px solid rgba(255,248,220,.18);
-      padding: .6rem .9rem;
-      font-weight: 700;
-      text-align: left;
-      color: cornsilk;
+      padding: .6rem .9rem; font-weight: 700; text-align: left; color: cornsilk;
     }
     .bilan-table td {
       padding: .55rem .9rem;
@@ -119,14 +91,11 @@
       vertical-align: middle;
     }
     .bilan-table tr:last-child td { border-bottom: none; }
-
     .note-box {
       border-left: 3px solid rgba(255,248,220,.35);
       background: rgba(255,248,220,.04);
       border-radius: 0 8px 8px 0;
-      padding: .55rem 1rem;
-      margin: .5rem 0 .9rem;
-      font-size: .88rem;
+      padding: .55rem 1rem; margin: .5rem 0 .9rem; font-size: .88rem;
     }
     .note-box.warn {
       border-left-color: rgba(251,191,36,.6);
@@ -143,15 +112,12 @@
       <h4 class="m-0"><em>PPE2 2026</em></h4>
       <span class="badge-soft">Rapport</span>
     </div>
-
     <nav class="navbar navbar-expand-lg navbar-dark mt-3">
       <div class="container">
         <a class="navbar-brand fw-semibold" href="index.html">Rendu final | Projet de Programmation Encadré</a>
-
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNav">
           <span class="navbar-toggler-icon"></span>
         </button>
-
         <div class="collapse navbar-collapse" id="mainNav">
           <ul class="navbar-nav ms-auto">
             <li class="nav-item"><a class="nav-link" href="projet.html">Accueil</a></li>
@@ -173,257 +139,198 @@
       <div class="hero-bg" aria-hidden="true"></div>
       <div class="hero-content p-4 p-md-5">
         <div class="glass p-3 p-md-4">
-          <h1 class="h3 mb-1"><strong>Rapport</strong></h1>
-          <p class="mb-0">Myriam, Peng, Hulya · Groupe 16 · Master pluriTAL · avril 2026</p>
+          <h1 class="h3 mb-1"><strong>Rapport du rendu final</strong></h1>
+          <p class="mb-0">Myriam, Peng, Hulya | Groupe 16 | Master pluriTAL | avril 2026</p>
         </div>
       </div>
     </section>
 
-    <!-- INTRO -->
+    <!-- RÉPARTITION -->
     <section class="reveal mb-4">
       <div class="modern-card p-4 p-md-5 rapport-body">
-        <h2 class="mt-0">Rapport sur l'ensemble des fonctionnalités attendues // Points 1 à 5</h2>
-        <p>
-          Ce rapport a été rédigé après test de l'ensemble de la pipeline sur un corpus RSS personnel (<code>donnees/</code>).
-          Chaque point a été testé individuellement et les résultats observés sont décrits ci-dessous.
-        </p>
-
-        <h3>Répartition des tâches de rédaction</h3>
-        <p>
-          <strong>Groupe 16</strong> // Myriam, Peng (Hulya a abandonné le projet pour cause de soucis personnels)<br>
-          <strong>Date :</strong> 6 avril 2026
-        </p>
+        <h2 class="mt-0">Répartition des tâches et conventions</h2>
+        <ul>
+          <li>Myriam est responsable des tests sur le code précédent pour la feuille Rendu final (exercice 2, points 1 à 5) à partir du corpus RSS personnel.</li>
+          <li>En fonction du rapport de Myriam et de ses propres tests, Peng apporte les modifications nécessaires au code, puis effectue de nouveaux tests sur le code modifié.</li>
+          <li>Peng est responsable de l'exo 2.3 de la feuille BERTopic.</li>
+          <li>Myriam est responsable de l'exo 2.4 de la feuille BERTopic.</li>
+          <li>Peng est responsable des visualisations BERTopic et LDA.</li>
+        </ul>
+        <p><strong>Les membres du groupe se sont organisés de la manière suivante :</strong></p>
+        <ul>
+          <li>Répartition des points par exercice</li>
+          <li>Création d'une branche <code>NP-exN-sN</code> (NP = initiales Nom-Prénom)</li>
+          <li>Message de commit à chaque partie pushée</li>
+          <li>Création d'un tag-fin : nous nous sommes mis d'accord pour que chacun fasse plusieurs points d'un exercice (ex2 1,2,3 par exemple), en sachant que nous n'étions que deux. Une fois les points finis, un tag <code>Np-ex-fin</code> est créé. Si un membre finit les derniers points du dernier exercice de la fiche, il met un tag <code>fiche-fin</code> directement.</li>
+          <li>Chacun relit le code de l'autre et crée un tag <code>ex-relu</code> après la relecture.</li>
+          <li>Une fois la fiche terminée et le code relu, la personne ayant fait les derniers exercices se charge de merger vers le main et de créer le tag de fin de la fiche.</li>
+        </ul>
       </div>
     </section>
 
-    <!-- POINT 1 -->
-    <section class="reveal mb-4">
-      <div class="modern-card p-3 p-md-4">
-        <button class="objectif-btn" type="button"
-          data-bs-toggle="collapse" data-bs-target="#point1"
-          aria-expanded="false" aria-controls="point1">
-          Point 1 // Lire un flux RSS unique (re, etree, feedparser)
-        </button>
-
-        <div class="collapse mt-4 objectif-body rapport-body" id="point1">
-          <p>
-            <strong>Attendu :</strong> le script <code>rss_reader.py</code> doit pouvoir lire un fichier XML RSS selon trois méthodes au choix :
-            expressions régulières (<code>re</code>), parsing XML (<code>etree</code>) et bibliothèque dédiée (<code>feedparser</code>).
-            Pour chaque article, les champs suivants doivent être extraits : identifiant, source, titre, contenu, date, catégories.
-          </p>
-          <p>
-            <strong>Obtenu :</strong> les trois méthodes sont implémentées et fonctionnelles. La commande <code>-r</code> permet de sélectionner la méthode.
-            Les articles sont correctement extraits avec tous les champs attendus.
-          </p>
-          <div class="note-box">
-            Une différence de comportement est à noter avec <code>re</code> : le champ contenu s'affiche sous la clé <code>description</code>
-            au lieu de <code>content</code>. Il s'agit d'un alias de compatibilité défini dans la dataclass <code>Article</code>
-            (<code>@property description</code>), non d'un bug.
-          </div>
-          <p><strong>Conclusion :</strong> <span class="statut-ok">✓ Objectif atteint</span></p>
-        </div>
-      </div>
-    </section>
-
-    <!-- POINT 2 -->
-    <section class="reveal mb-4">
-      <div class="modern-card p-3 p-md-4">
-        <button class="objectif-btn" type="button"
-          data-bs-toggle="collapse" data-bs-target="#point2"
-          aria-expanded="false" aria-controls="point2">
-          Point 2 — Parcourir une arborescence et appliquer des filtres
-        </button>
-
-        <div class="collapse mt-4 objectif-body rapport-body" id="point2">
-          <p>
-            <strong>Attendu :</strong> le script <code>rss_parcours.py</code> doit parcourir un dossier contenant des fichiers XML RSS
-            selon trois méthodes (<code>os</code>, <code>pathlib</code>, <code>glob</code>), puis permettre de filtrer les articles
-            par date (<code>--start</code>, <code>--end</code>), par source (<code>-s</code>) et par catégorie (<code>-cat</code>).
-            Il doit également permettre de sauvegarder et de charger un corpus sérialisé.
-          </p>
-          <p>
-            <strong>Obtenu :</strong> le parcours d'arborescence fonctionne avec les trois walkers. La sérialisation et la désérialisation
-            sont opérationnelles. Les filtres par date et par source fonctionnent correctement.
-          </p>
-          <p>Deux points de vigilance ont été identifiés lors des tests :</p>
-          <ul>
-            <li>
-              <strong>Filtre par source :</strong> la valeur du champ <code>source</code> correspond au chemin complet du fichier XML
-              (ex : <code>/Users/.../Libération - Sports.xml</code>). Le filtre fonctionne par sous-chaîne, donc <code>-s "Lib"</code>
-              fonctionne mais <code>-s "Libération"</code> échoue si la casse ne correspond pas exactement. Ce comportement n'est pas
-              documenté et peut induire l'utilisateur en erreur.
-            </li>
-            <li>
-              <strong>Filtre par catégorie :</strong> avec la méthode <code>feedparser</code>, les catégories ne sont pas extraites sur ce
-              corpus (<code>categories : []</code>), rendant le filtre <code>-cat</code> non opérationnel. Le filtre fonctionne correctement
-              avec <code>-m etree</code> ou <code>-m re</code>, à condition de respecter la casse des catégories telles qu'elles apparaissent
-              dans les fichiers XML (ex : <code>Sport</code> et non <code>sport</code>).
-            </li>
-            <li>
-              <strong>Extension pickle :</strong> le format pickle génère l'extension <code>.pickle</code> et non <code>.pkl</code>.
-              Les commandes du manuel doivent en tenir compte.
-            </li>
-          </ul>
-          <p><strong>Conclusion :</strong> <span class="statut-ok">✓ Objectif majoritairement atteint</span> — les filtres par date et source fonctionnent. Le filtre par catégorie est conditionné au choix de la méthode et à la casse. Ces limitations ne constituent pas des bugs mais des comportements à documenter.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- POINT 3 -->
-    <section class="reveal mb-4">
-      <div class="modern-card p-3 p-md-4">
-        <button class="objectif-btn" type="button"
-          data-bs-toggle="collapse" data-bs-target="#point3"
-          aria-expanded="false" aria-controls="point3">
-          Point 3 — Sérialiser et désérialiser selon trois formats
-        </button>
-
-        <div class="collapse mt-4 objectif-body rapport-body" id="point3">
-          <p>
-            <strong>Attendu :</strong> le script <code>datastructures.py</code> doit permettre de convertir un corpus entre les formats
-            <code>json</code>, <code>pickle</code> et <code>xml</code> dans les deux sens.
-          </p>
-          <p>
-            <strong>Obtenu :</strong> les six conversions possibles ont été testées et fonctionnent toutes correctement.
-            Les dataclasses <code>Article</code> et <code>Token</code> sont correctement sérialisées et reconstruites.
-          </p>
-          <div class="note-box">
-            L'extension générée pour le format pickle est <code>.pickle</code> et non <code>.pkl</code>. Ce n'est pas un bug
-            mais il faut en être informé pour enchaîner les commandes correctement.
-          </div>
-          <p><strong>Conclusion :</strong> <span class="statut-ok">✓ Objectif atteint</span></p>
-        </div>
-      </div>
-    </section>
-
-    <!-- POINT 4 -->
-    <section class="reveal mb-4">
-      <div class="modern-card p-3 p-md-4">
-        <button class="objectif-btn" type="button"
-          data-bs-toggle="collapse" data-bs-target="#point4"
-          aria-expanded="false" aria-controls="point4">
-          Point 4 — Analyse morphosyntaxique (spaCy, Stanza, Trankit)
-        </button>
-
-        <div class="collapse mt-4 objectif-body rapport-body" id="point4">
-          <p>
-            <strong>Attendu :</strong> le script <code>analyzers.py</code> doit enrichir les articles du corpus avec une analyse
-            morphosyntaxique (forme, lemme, POS) en utilisant au choix spaCy, Stanza ou Trankit.
-          </p>
-          <p><strong>Obtenu :</strong></p>
-          <ul>
-            <li>
-              <strong>spaCy :</strong> fonctionne parfaitement. 3 469 articles analysés en quelques secondes avec le modèle
-              <code>fr_core_news_sm</code>. Les tokens sont correctement stockés dans les objets <code>Article</code>.
-            </li>
-            <li>
-              <strong>Stanza :</strong> fonctionne correctement. Le pipeline <code>tokenize, mwt, pos, lemma</code> est chargé
-              automatiquement pour le français. L'analyse est plus lente que spaCy et plus gourmande en mémoire (738 Mo observés),
-              mais les résultats sont de meilleure qualité linguistique.
-            </li>
-            <li>
-              <strong>Trankit :</strong> le code est implémenté et structurellement correct dans <code>analyzers.py</code>. Cependant,
-              Trankit n'a pas pu être installé dans de bonnes conditions : le serveur hébergeant les modèles pré-entraînés était
-              inaccessible au moment des tests, rendant l'installation impossible sur Apple Silicon.
-            </li>
-          </ul>
-          <div class="note-box warn">
-            Trankit est implémenté mais non testable en raison d'un problème indépendant du code (serveur de modèles inaccessible, incompatibilité Apple Silicon).
-          </div>
-          <p><strong>Conclusion :</strong> <span class="statut-ok">✓ Objectif atteint</span> pour spaCy et Stanza. <span class="statut-warn">⚠ Trankit</span> implémenté mais non testable.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- POINT 5 -->
-    <section class="reveal mb-4">
-      <div class="modern-card p-3 p-md-4">
-        <button class="objectif-btn" type="button"
-          data-bs-toggle="collapse" data-bs-target="#point5"
-          aria-expanded="false" aria-controls="point5">
-          Point 5 — Topic modeling LDA (Gensim)
-        </button>
-
-        <div class="collapse mt-4 objectif-body rapport-body" id="point5">
-          <p>
-            <strong>Attendu :</strong> le script <code>run_lda.py</code> doit effectuer une modélisation thématique LDA sur un corpus
-            préalablement analysé, avec des options configurables (nombre de topics, passes, filtrage POS, bigrammes, etc.)
-            et produire une sortie JSON structurée.
-          </p>
-          <p><strong>Obtenu :</strong> le script fonctionne correctement. Deux configurations ont été testées :</p>
-          <ul>
-            <li>
-              <strong>Sans filtrage POS :</strong> 10 topics, 20 passes, sur les lemmes. Cohérence moyenne : -3.31.
-              Les topics contiennent encore beaucoup de mots grammaticaux (être, avoir, en, et…), ce qui reflète l'absence de filtrage.
-            </li>
-            <li>
-              <strong>Avec filtrage POS (NOUN, VERB, ADJ) et bigrammes :</strong> cohérence moyenne : -7.34.
-              La qualité des topics est moins bonne avec cette configuration sur ce corpus, ce qui est attendu :
-              le filtrage POS réduit le vocabulaire disponible et les bigrammes introduisent du bruit sur un corpus de taille modeste (3 464 documents).
-            </li>
-          </ul>
-          <p>
-            La sortie JSON est bien structurée avec <code>coherence_score</code> et <code>topic_representation</code>
-            (liste de paires mot/probabilité) pour chaque topic, conformément à la dataclass <code>Topic</code> définie dans <code>datastructures.py</code>.
-          </p>
-          <p><strong>Conclusion :</strong> <span class="statut-ok">✓ Objectif atteint</span></p>
-        </div>
-      </div>
-    </section>
-
-    <!-- BILAN -->
+    <!-- MYRIAM — POINTS 1 À 5 -->
     <section class="reveal mb-4">
       <div class="modern-card p-4 p-md-5 rapport-body">
-        <h2 class="mt-0">Bilan général</h2>
+        <h2 class="mt-0">Myriam BEN HADJ SGHAIER | Rapport sur les fonctionnalités attendues (points 1 à 5)</h2>
+        <p><strong>Date :</strong> 6 avril 2026</p>
+        <p>Cette partie du rapport a été rédigée après test effectif par Myriam BHS (points 1 à 5) de l'ensemble de la pipeline sur un corpus RSS personnel (<code>donnees/</code>). Chaque point a été testé individuellement et les résultats observés sont décrits ci-dessous.</p>
 
+        <h3>Point 1 | Lire un flux RSS unique (re, etree, feedparser)</h3>
+        <p><strong>Attendu</strong> : le script <code>rss_reader.py</code> doit pouvoir lire un fichier XML RSS selon trois méthodes au choix : expressions régulières (<code>re</code>), parsing XML (<code>etree</code>) et bibliothèque dédiée (<code>feedparser</code>). Pour chaque article, les champs suivants doivent être extraits : identifiant, source, titre, contenu, date, catégories.</p>
+        <p><strong>Obtenu</strong> : les trois méthodes sont implémentées et fonctionnelles. La commande <code>-r</code> permet de sélectionner la méthode. Les articles sont correctement extraits avec tous les champs attendus.</p>
+        <p>Une différence de comportement est à noter avec <code>re</code> : le champ contenu s'affiche sous la clé <code>description</code> au lieu de <code>content</code>. Il s'agit d'un alias de compatibilité défini dans la dataclass <code>Article</code> (<code>@property description</code>), non d'un bug.</p>
+        <p><strong>Conclusion</strong> : objectif atteint.</p>
+
+        <h3>Point 2 | Parcourir une arborescence et appliquer des filtres</h3>
+        <p><strong>Attendu</strong> : le script <code>rss_parcours.py</code> doit parcourir un dossier contenant des fichiers XML RSS selon trois méthodes (<code>os</code>, <code>pathlib</code>, <code>glob</code>), puis permettre de filtrer les articles par date (<code>--start</code>, <code>--end</code>), par source (<code>-s</code>) et par catégorie (<code>-cat</code>). Il doit également permettre de sauvegarder et de charger un corpus sérialisé.</p>
+        <p><strong>Obtenu</strong> : le parcours d'arborescence fonctionne avec les trois walkers. La sérialisation et la désérialisation sont opérationnelles. Les filtres par date et par source fonctionnent correctement.</p>
+        <p>Deux points de vigilance ont été identifiés lors des tests :</p>
+        <ul>
+          <li><strong>Filtre par source</strong> : la valeur du champ <code>source</code> correspond au chemin complet du fichier XML (ex : <code>/Users/.../Libération - Sports.xml</code>). Le filtre fonctionne par sous-chaîne, donc <code>-s "Lib"</code> fonctionne mais <code>-s "Libération"</code> échoue si la casse ne correspond pas exactement. Ce comportement n'est pas documenté et peut induire l'utilisateur en erreur.</li>
+          <li><strong>Filtre par catégorie</strong> : avec la méthode <code>feedparser</code>, les catégories ne sont pas extraites sur ce corpus (<code>categories : []</code>), rendant le filtre <code>-cat</code> non opérationnel. Le filtre fonctionne correctement avec <code>-m etree</code> ou <code>-m re</code>, à condition de respecter la casse des catégories telles qu'elles apparaissent dans les fichiers XML (ex : <code>Sport</code> et non <code>sport</code>). Ce comportement dépend du corpus et de la méthode choisie, et mériterait d'être signalé à l'utilisateur.</li>
+          <li><strong>Extension pickle</strong> : le format pickle génère l'extension <code>.pickle</code> et non <code>.pkl</code>. Les commandes du manuel doivent en tenir compte.</li>
+        </ul>
+        <p><strong>Conclusion</strong> : objectif majoritairement atteint. Les filtres par date et source fonctionnent. Le filtre par catégorie est conditionné au choix de la méthode et à la casse. Ces limitations ne constituent pas des bugs mais des comportements à impérativement documenter.</p>
+
+        <h3>Point 3 | Sérialiser et désérialiser selon trois formats</h3>
+        <p><strong>Attendu</strong> : le script <code>datastructures.py</code> doit permettre de convertir un corpus entre les formats <code>json</code>, <code>pickle</code> et <code>xml</code> dans les deux sens.</p>
+        <p><strong>Obtenu</strong> : les six conversions possibles ont été testées et fonctionnent toutes correctement. Les dataclasses <code>Article</code> et <code>Token</code> sont correctement sérialisées et reconstruites.</p>
+        <p>Un point mineur : l'extension générée pour le format pickle est <code>.pickle</code> et non <code>.pkl</code>. Ce n'est pas un bug mais il faut en être informé pour enchaîner les commandes correctement.</p>
+        <p><strong>Conclusion</strong> : objectif atteint.</p>
+
+        <h3>Point 4 | Analyse morphosyntaxique (spaCy, stanza, trankit)</h3>
+        <p><strong>Attendu</strong> : le script <code>analyzers.py</code> doit enrichir les articles du corpus avec une analyse morphosyntaxique (forme, lemme, POS) en utilisant au choix spaCy, stanza ou trankit.</p>
+        <p><strong>Obtenu</strong> :</p>
+        <ul>
+          <li><strong>spaCy</strong> : fonctionne parfaitement. 3 469 articles analysés en quelques secondes avec le modèle <code>fr_core_news_sm</code>. Les tokens sont correctement stockés dans les objets <code>Article</code>.</li>
+          <li><strong>stanza</strong> : fonctionne correctement. Le pipeline <code>tokenize, mwt, pos, lemma</code> est chargé automatiquement pour le français. L'analyse est plus lente que spaCy et plus gourmande en mémoire (738 Mo observés), mais les résultats sont de meilleure qualité linguistique.</li>
+          <li><strong>trankit</strong> : le code est implémenté et structurellement correct dans <code>analyzers.py</code>. Cependant, trankit n'a pas pu être installé dans de bonnes conditions : le serveur hébergeant les modèles pré-entraînés était inaccessible au moment des tests, rendant l'installation impossible sur Apple Silicon.</li>
+        </ul>
+        <p><strong>Conclusion</strong> : objectif atteint pour spaCy et stanza. Trankit est implémenté mais non testable en raison d'un problème indépendant du code.</p>
+
+        <h3>Point 5 | Topic modeling LDA (gensim)</h3>
+        <p><strong>Attendu</strong> : le script <code>run_lda.py</code> doit effectuer une modélisation thématique LDA sur un corpus préalablement analysé, avec des options configurables (nombre de topics, passes, filtrage POS, bigrammes, etc.) et produire une sortie JSON structurée.</p>
+        <p><strong>Obtenu</strong> : le script fonctionne correctement. Deux configurations ont été testées :</p>
+        <ul>
+          <li><strong>Sans filtrage POS</strong> : 10 topics, 20 passes, sur les lemmes. Cohérence moyenne : -3.31. Les topics contiennent encore beaucoup de mots grammaticaux (être, avoir, en, et…), ce qui reflète l'absence de filtrage.</li>
+          <li><strong>Avec filtrage POS (NOUN, VERB, ADJ) et bigrammes</strong> : cohérence moyenne : -7.34. La qualité des topics est moins bonne avec cette configuration sur ce corpus, ce qui est attendu : le filtrage POS réduit le vocabulaire disponible et les bigrammes introduisent du bruit sur un corpus de taille modeste (3 464 documents).</li>
+        </ul>
+        <p>La sortie JSON est bien structurée avec <code>coherence_score</code> et <code>topic_representation</code> (liste de paires mot/probabilité) pour chaque topic, conformément à la dataclass <code>Topic</code> définie dans <code>datastructures.py</code>.</p>
+        <p><strong>Conclusion</strong> : objectif atteint.</p>
+
+        <h3>Bilan général</h3>
         <table class="bilan-table">
-          <thead>
-            <tr>
-              <th>Point</th>
-              <th>Objectif</th>
-              <th>Statut</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Point</th><th>Objectif</th><th>Statut</th></tr></thead>
           <tbody>
-            <tr>
-              <td>1</td>
-              <td>Lecture RSS (re, etree, feedparser)</td>
-              <td><span class="statut-ok">✓ OK</span></td>
-            </tr>
-            <tr>
-              <td>2</td>
-              <td>Arborescence + filtres</td>
-              <td><span class="statut-ok">✓ OK</span> <span style="font-size:.82rem; opacity:.7;">(comportements à documenter)</span></td>
-            </tr>
-            <tr>
-              <td>3</td>
-              <td>Sérialisation xml / pickle / json</td>
-              <td><span class="statut-ok">✓ OK</span></td>
-            </tr>
-            <tr>
-              <td>4</td>
-              <td>Analyse morphosyntaxique</td>
-              <td><span class="statut-ok">✓ spaCy + Stanza</span> &nbsp;<span class="statut-warn">⚠ Trankit</span></td>
-            </tr>
-            <tr>
-              <td>5</td>
-              <td>Topic modeling LDA</td>
-              <td><span class="statut-ok">✓ OK</span></td>
-            </tr>
+            <tr><td>1</td><td>Lecture RSS (re, etree, feedparser)</td><td><strong>OK</strong></td></tr>
+            <tr><td>2</td><td>Arborescence + filtres</td><td><strong>OK</strong> <span style="font-size:.82rem;opacity:.7;">(comportements à documenter)</span></td></tr>
+            <tr><td>3</td><td>Sérialisation xml / pickle / json</td><td><strong>OK</strong></td></tr>
+            <tr><td>4</td><td>Analyse morphosyntaxique</td><td><strong>OK — spaCy + stanza</strong> / <strong>⚠ trankit (externe)</strong></td></tr>
+            <tr><td>5</td><td>Topic modeling LDA</td><td><strong>OK</strong></td></tr>
           </tbody>
         </table>
+        <p class="mt-3">Le rapport actuel couvre l'ensemble des fonctionnalités attendues pour les points 1 à 5. Les limitations identifiées (comportement du filtre source, catégories avec feedparser, trankit) ne constituent pas un bug bloquant.</p>
+      </div>
+    </section>
 
-        <p class="mt-3">
-          Le rapport actuel couvre l'ensemble des fonctionnalités attendues pour les points 1 à 5.
-          Les limitations identifiées (comportement du filtre source, catégories avec feedparser, Trankit) ne constituent pas un bug bloquant.
-        </p>
+    <!-- PENG — MODIFICATIONS -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-4 p-md-5 rapport-body">
+        <h2 class="mt-0">Peng CHEN — Rapport sur la modification du code précédent, le test du code modifié</h2>
+        <p>Sur la base du rapport de tests de Myriam sur le code précédent, j'ai effectué certaines modifications ainsi que de nouveaux tests.</p>
 
-        <h2>Points d'amélioration suggérés</h2>
+        <h3>Modifications apportées</h3>
         <ul>
-          <li>Normaliser la valeur du champ <code>source</code> pour n'afficher que le nom du fichier et non le chemin complet, ce qui rendrait le filtre <code>-s</code> plus intuitif.</li>
-          <li>Ajouter un avertissement explicite lorsque feedparser ne récupère pas de catégories, plutôt que de retourner silencieusement une liste vide.</li>
-          <li>Documenter l'extension <code>.pickle</code> générée par le format pickle dans les messages d'aide des scripts.</li>
+          <li><code>rss_reader.py</code> (méthode feedparser) : le champ source utilisait auparavant le chemin complet du fichier, ce qui créait des incohérences. Il a été remplacé par le nom du fichier uniquement (<code>Path(...).name</code>) afin d'uniformiser les sources.</li>
+          <li><code>rss_parcours.py</code> : j'ai corrigé le filtrage des articles en rendant la gestion des dates plus stricte (suppression des dates absentes ou invalides) et en remplaçant la logique de catégories par une logique OR. Cela permet de conserver un article s'il correspond à au moins une catégorie, conformément à la logique du code de correction fourni par les professeurs.</li>
+          <li><code>Analyzers.py</code>, <code>datastructures.py</code> et <code>run_lda.py</code> : j'ai repris et restructuré une grande partie du code. En m'inspirant du style de la correction fournie par le professeur, j'ai supprimé du code et des classes superflus afin de rendre l'architecture plus claire et lisible.</li>
+          <li><code>datastructures.py</code> : dans la classe <code>Article</code>, le champ token était utilisé comme clé, avec un type limité à <code>list[Token]</code>. J'ai modifié cette structure pour adopter une représentation plus adaptée — <code>analysis: list[list[Token]] = field(default_factory=list)</code>. Cela a nécessité une série d'ajustements cohérents dans le reste du code. Au passage, j'ai corrigé un bug dans la fonction : l'ancienne version écrasait certaines variables (conflit de noms) et ciblait incorrectement les balises XML, ce qui produisait des listes vides. Ce problème est désormais corrigé en quelques lignes, et la désérialisation remplit correctement la structure <code>list[list[Token]]</code>.</li>
         </ul>
+
+        <h3>Test</h3>
+        <p>En raison de l'absence de l'environnement Trankit chez Myriam, j'ai effectué les tests de l'analyse morphosyntaxique avec Trankit.</p>
+        <p>Trankit fonctionne correctement. J'ai d'abord généré un corpus filtré ne contenant que les articles de la source Figaro. Les tests réalisés sur ce corpus de taille pas trop grande montrent des résultats cohérents et aucun problème n'a été détecté.</p>
+      </div>
+    </section>
+
+    <!-- MYRIAM — BERTOPIC 2.4 -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-4 p-md-5 rapport-body">
+        <h2 class="mt-0">Myriam BEN HADJ SGHAIER — Rapport BERTopic : exo 2.4 (feuille BERTopic / exo 2.6 rendu final)</h2>
+        <p><strong>Date :</strong> 17 avril 2026</p>
+
+        <h3>Point 4 | Amélioration du script — options <code>--token</code> et <code>--pos</code></h3>
+        <p><strong>Attendu</strong> : améliorer <code>run_bertopic.py</code> pour pouvoir choisir entre les mots-formes et les lemmes, filtrer sur les catégories grammaticales et déclarer ces deux options en ligne de commande.</p>
+
+        <h3>4a | Choix entre lemmes et mots-formes (<code>--token</code>)</h3>
+        <p>Dans <code>load_corpus()</code>, la construction de chaque document s'est faite par une expression conditionnelle sur chaque token :</p>
+        <pre><code>(t.lemma if token_type == "lemma" else t.form)
+for sentence in article.analysis for t in sentence</code></pre>
+        <p>L'option <code>--token</code> est déclarée dans le parseur avec deux valeurs possibles :</p>
+        <pre><code>parser.add_argument("--token", choices=["lemma", "form"], default="lemma",
+                    help="Type de token : lemmes ou mot-formes (défaut: lemma)")</code></pre>
+        <p>Utilisation :</p>
+        <pre><code>python run_bertopic.py -f json corpus_analyse.json --token lemma
+python run_bertopic.py -f json corpus_analyse.json --token form</code></pre>
+
+        <h3>4b | Filtrage par catégories grammaticales (<code>--pos</code>)</h3>
+        <p>Le filtre POS est intégré dans la même compréhension de liste que le choix du token, via une condition supplémentaire :</p>
+        <pre><code>and (pos_filter is None or t.pos in pos_filter)</code></pre>
+        <p>Quand <code>--pos</code> n'est pas spécifié, <code>pos_filter</code> vaut <code>None</code> et tous les tokens sont conservés. L'option accepte plusieurs valeurs grâce à <code>nargs="+"</code> :</p>
+        <pre><code>parser.add_argument("--pos", nargs="+", default=None, metavar="CAT",
+                    help="Catégories grammaticales à conserver (ex: --pos NOUN VERB). Défaut : toutes.")</code></pre>
+        <p>Utilisation :</p>
+        <pre><code>python run_bertopic.py -f json corpus_analyse.json --pos NOUN VERB
+python run_bertopic.py -f json corpus_analyse.json --pos NOUN</code></pre>
+
+        <h3>4c | Combinaison des deux options en ligne de commande</h3>
+        <p>Les deux options étant indépendantes dans <code>argparse</code> et transmises ensemble à <code>load_corpus()</code>, elles peuvent être utilisées simultanément :</p>
+        <pre><code>python run_bertopic.py -f json corpus_analyse.json --token lemma --pos NOUN VERB -o topics.html</code></pre>
+        <p>Testé sur <code>corpus_analyse.json</code> (3 207 documents) | fonctionne correctement.</p>
+
+        <h3>Bilan</h3>
+        <table class="bilan-table">
+          <thead><tr><th>Sous-point</th><th>Objectif</th><th>Statut</th></tr></thead>
+          <tbody>
+            <tr><td>4a</td><td>Option <code>--token</code> (lemma / form) dans <code>load_corpus()</code> et argparse</td><td><strong>OK</strong></td></tr>
+            <tr><td>4b</td><td>Option <code>--pos</code> avec <code>nargs="+"</code> et filtre dans la compréhension de liste</td><td><strong>OK</strong></td></tr>
+            <tr><td>4c</td><td>Combinaison des deux options en CLI</td><td><strong>OK</strong></td></tr>
+          </tbody>
+        </table>
+        <p><strong>Conclusion</strong> : objectif atteint. Les deux options sont implémentées de manière concise dans la fonction <code>load_corpus()</code>, dans une seule compréhension de liste, et exposées en ligne de commande via <code>argparse</code>.</p>
+      </div>
+    </section>
+
+    <!-- PENG — BERTOPIC 2.3 -->
+    <section class="reveal mb-4">
+      <div class="modern-card p-4 p-md-5 rapport-body">
+        <h2 class="mt-0">Peng CHEN — Rapport BERTopic et LDA : exo 2.3 (feuille BERTopic / exo 2.6 et 2.7 rendu final)</h2>
+
+        <h3>Objectifs attendus</h3>
+        <ul>
+          <li>Générer des topics cohérents à partir de nos données analysées par spaCy/stanza/trankit, avec une interface en ligne de commande (argparse) dans <code>run_bertopic.py</code>.</li>
+          <li>Produire des visualisations interactives pour BERTopic et LDA.</li>
+        </ul>
+
+        <h3>Construction du code</h3>
+        <p>Puisqu'il s'agit d'une nouvelle feature, j'ai d'abord créé une branche Git dédiée : <code>PC-visualisation</code>.</p>
+        <p><strong>Pour BERTopic (<code>run_bertopic.py</code>) :</strong> au lieu de se contenter d'un seul graphique par défaut, j'ai configuré le script pour générer 6 types de visualisations HTML différentes selon l'analyse souhaitée :</p>
+        <ul>
+          <li>Le Barchart (Mots-clés) : affiche le top des mots les plus importants pour chaque sujet, ce qui permet d'« étiqueter » rapidement un thème.</li>
+          <li>La carte 2D (Distance sémantique) : représente chaque sujet par un cercle sur un plan, permettant de voir sa popularité (taille du cercle) et d'identifier les thèmes qui se ressemblent.</li>
+          <li>L'arbre hiérarchique (Hierarchy) : un arbre qui relie les sujets entre eux pour comprendre comment les petits micro-sujets s'emboîtent et forment les grandes rubriques de l'actualité.</li>
+          <li>La Heatmap (Carte de chaleur) : un tableau de couleurs qui croise tous les sujets pour repérer d'un seul coup d'œil quels thèmes voyagent ensemble ou se croisent souvent dans les mêmes articles.</li>
+          <li>Le déclin des termes (Terms) : une courbe montrant comment l'importance des mots chute dans un sujet.</li>
+          <li>L'évolution temporelle (Over time) : des courbes sur un axe chronologique pour repérer les pics de popularité. Les dates RSS sont très précises (jusqu'à la seconde) ; j'ai choisi de regrouper les dates par mois pour éviter la dispersion et améliorer la lisibilité.</li>
+          <li><em>Sécurité (Fallback)</em> : si le corpus est trop petit pour générer une carte complexe, le script bascule automatiquement sur le barchart.</li>
+        </ul>
+        <p><strong>Pour LDA (<code>run_lda.py</code>) :</strong> on utilise directement le standard de l'industrie : <strong><code>pyLDAvis</code></strong>. Il condense tout dans un seul dashboard HTML interactif (carte des distances à gauche, histogrammes à droite), avec un curseur λ qui permet de masquer les mots trop banals pour faire ressortir le vocabulaire vraiment exclusif et spécifique à chaque sujet.</p>
+
+        <h3>Tests et paramétrages</h3>
+        <p>Pour tester le code efficacement sans surcharger la machine avec tout le corpus, j'ai extrait un sous-corpus contenant <strong>uniquement les articles du <em>Figaro</em></strong> (environ 1 103 articles). J'ai également ajouté un filtre morphosyntaxique strict via <code>argparse</code> : on ne garde que <strong>les Noms (<code>NOUN</code>), Noms Propres (<code>PROPN</code>) et Adjectifs (<code>ADJ</code>)</strong>.</p>
+
+        <h3>Résultats obtenus</h3>
+        <p>Tout fonctionne comme prévu ! Les commandes s'exécutent sans erreur et chaque graphique a bien généré son fichier HTML interactif (disponibles dans le dossier <code>page_html</code>). Grâce au ciblage sur <em>Le Figaro</em> et au filtre POS (NOUN/PROPN/ADJ), les thèmes générés sont sémantiquement plus clairs.</p>
       </div>
     </section>
 
